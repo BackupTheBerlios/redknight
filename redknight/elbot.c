@@ -898,14 +898,6 @@ int main (int argc, const char ** argv) {
   if(_debug)debug=_debug;
   if(debug >= 5) port=2001;
 
-  load_admins();
-  // Testing
-  if(check_admins("Leeloo")) printf("Ph34r!");
-  else {
-       i = 0;
-       while(i++ < no_admins + 1) printf("\"%s\"", admins[i]);
-  }
-
   err = init_connection (hostname, port);
   if (err) {
     exit_connection (err);
