@@ -23,7 +23,8 @@ struct kill_queue
     unsigned int time;   
     actor *k;       // Reference accompanying actor - actors_list[k]
     struct kill_queue *next, *prev;
-}extern *first_node;
+};
+extern struct kill_queue *first_node;
 
 extern actor *actors_list[1000];
 extern int yourself, insult_enemy;

@@ -71,8 +71,7 @@ void load_admins()
 {
      FILE *f = NULL;
      char b;
-     char buffer[30*100];
-     int s = 0, c = 0, i = 0, d = 0;
+     int s = 0, i = 0;
      
 	 if(!(f=open("admin.lst", 0))) return;	 
 	 admins[i++] = ' ';
@@ -88,7 +87,7 @@ void load_admins()
 int get_admins_string(char * in_name, int len)
 {
      int i = 0, j = 0, k = 0;
-     if(len >= 30) return; //Too big to be a name
+     if(len >= 30) return 0; //Too big to be a name
      char name[31]=" ";
      char lower_name[30];
      
@@ -185,69 +184,17 @@ void process_raw_text (const char *data) {
   }
 }
 
-// Old Describe section, kinda useless though...
-      /*  //Unless someone wants to add local support ... 
-          //FIXME -- Load describe me's/playername from file
-      
-      if(!strncasecmp(data,"describe",8) && data[8] != '\0' && data[9] != '\0' && data[10] != '\0')
-      { 
-        if(debug >= DEBUG_HIGH)log_info("Describing...");    
-
-        if(!strcasecmp(data,"describe me]"))
-        {
-            if(!strcasecmp(chat_name,"crusadingknight"))
-            {
-                send_pm("%s %s%s", chat_name, "You are my lord and master, ", chat_name);
-                return;
-            }
-
-            if(!strcasecmp(chat_name,"tirashazor"))
-            {
-                send_pm("%s %s%s %s", chat_name, "I won't describe you, ", chat_name, "bith :P");
-                return;
-            }
-
-            //Don't know player
-            send_pm("%s %s%s", chat_name, "I don't know how you are, ", chat_name);
-            return;
-        }
-        else
-        {
-            if(!strcasecmp(data,"describe crusadingknight]"))
-
-            {
-                send_pm("%s %s", chat_name, "He is my lord and master.");
-                return;
-            }
-            if(!strcasecmp(data,"describe tirashazor]"))
-            {
-                send_pm("%s %s", chat_name, "He calls me a 'bith'!.");
-                return;
-            }
-
-            strncpy(des_name,data+9,(strlen(data+9)-1));
-            strcpy(des_name+(strlen(data+9)-1), "\0"); 
-            send_pm("%s I don't know who \"%s\" is.", chat_name, des_name);
-            return;
-        }
-      }
-      
-      // End Commented-Out describe section
-*/
-
 
 //This functions figures out the text type, and responds accordingly
-void process_text_message(const char *data, int PM) { 
-    int x=0,y=0,z=0;
-    char des_name[300];
+void process_text_message(const char *msg, int PM) { 
     char text[1024];
     int i=0;    
 
     if(PM==1)
     {
       // tolower' text
-      while(i < strlen(data)) {
-          data[i] = tolower(data[i]);
+      while(i < strlen(msg)) {
+          data[i] = tolower(msg[i]);
           i++;
       }
       i = 0;
@@ -436,7 +383,6 @@ int login (const char *name, const char *passwd) {
 void do_event_loop () {
   unsigned int last_heart_beat = SDL_GetTicks (), time;
   unsigned char heartbeat = HEART_BEAT;
-  int j=0;
   actor *me = NULL;
 
   while (1) {
@@ -551,7 +497,7 @@ int main (int argc, const char ** argv) {
   for(i=0;i<max_actors;i++)
 			actors_list[i]=NULL;
 
-  if(!process_args(argc, argv))return;   
+  if(!process_args(argc, argv))return 0;   
 
 #ifdef LINUX
   chdir(ROOTDIR);
