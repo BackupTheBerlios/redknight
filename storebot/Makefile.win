@@ -1,0 +1,57 @@
+# Project: StoreBot
+# Makefile created by Dev-C++ 4.9.9.2
+
+CPP  = g++.exe
+CC   = gcc.exe
+WINDRES = windres.exe
+RES  = 
+OBJ  = actors.o config.o credit.o items.o main.o misc.o privilege.o trade.o connection.o log.o $(RES)
+LINKOBJ  = actors.o config.o credit.o items.o main.o misc.o privilege.o trade.o connection.o log.o $(RES)
+LIBS =  -L"C:/Dev-Cpp/lib" -L"C:/Dev-Cpp/lib" -lSDL -lSDL_net   
+INCS =  -I"C:/Dev-Cpp/include" 
+CXXINCS =  -I"C:/Dev-Cpp/include/c++"  -I"C:/Dev-Cpp/include/c++/mingw32"  -I"C:/Dev-Cpp/include/c++/backward"  -I"C:/Dev-Cpp/include" 
+BIN  = StoreBot.exe
+CXXFLAGS = $(CXXINCS)   -w -fexpensive-optimizations -O3
+CFLAGS = $(INCS)   -w -fexpensive-optimizations -O3
+RM = rm -f
+
+.PHONY: all all-before all-after clean clean-custom
+
+all: all-before StoreBot.exe all-after
+
+
+clean: clean-custom
+	${RM} $(OBJ) $(BIN)
+
+$(BIN): $(OBJ)
+	$(CC) $(LINKOBJ) -o "StoreBot.exe" $(LIBS)
+
+actors.o: actors.c
+	$(CC) -c actors.c -o actors.o $(CFLAGS)
+
+config.o: config.c
+	$(CC) -c config.c -o config.o $(CFLAGS)
+
+credit.o: credit.c
+	$(CC) -c credit.c -o credit.o $(CFLAGS)
+
+items.o: items.c
+	$(CC) -c items.c -o items.o $(CFLAGS)
+
+main.o: main.c
+	$(CC) -c main.c -o main.o $(CFLAGS)
+
+misc.o: misc.c
+	$(CC) -c misc.c -o misc.o $(CFLAGS)
+
+privilege.o: privilege.c
+	$(CC) -c privilege.c -o privilege.o $(CFLAGS)
+
+trade.o: trade.c
+	$(CC) -c trade.c -o trade.o $(CFLAGS)
+
+connection.o: connection.c
+	$(CC) -c connection.c -o connection.o $(CFLAGS)
+
+log.o: log.c
+	$(CC) -c log.c -o log.o $(CFLAGS)
