@@ -62,10 +62,11 @@ unsigned char logged_in;
 
 
 // admin.lst usage
-char admins[100*30];
-int no_admins = 0;
-// <name> <name> ...
-//FIXME -- Make it work efficiently
+char admins[5*30];
+int admins_len = 0;
+// " <name> <name> ..."
+// (A space is appended to the front to make searches faster)
+// (tolower'd because case is insensitive, ie. CrusadingKNIGHT == CrUsAdInGkNiGhT)
 void load_admins()
 {
      FILE *f = NULL;
@@ -74,23 +75,43 @@ void load_admins()
      int s = 0, c = 0, i = 0, d = 0;
      
 	 if(!(f=open("admin.lst", 0))) return;	 
-	 
-	 while((s=read(f, &b, 1))) admins[i++] = b;
-     close(f);	 
+	 admins[i++] = ' ';
+	 while((s=read(f, &b, 1))) admins[i++] = tolower(b);
+	 admins[i] = '\0';
+	 admins_len = i;
+     close(f);
 }
 
-
-//FIXME -- Make it work efficiently
-int check_admins(char * name)
+// Usage :
+//         if(get_admins_string("CrusaDingKnIGHT", 15) != -1) printf("Pwn3d!1~!");
+//         (All strings are tolower'd)         
+int get_admins_string(char * in_name, int len)
 {
-     int i = 0;
+     int i = 0, j = 0, k = 0;
+     if(len >= 30) return; //Too big to be a name
+     char name[31]=" ";
+     char lower_name[30];
      
-     while(i < no_admins) {
-           printf("%s\n", admins[i]);  
-           if(!strcasecmp(admins[i++], name)) return 1;
+     while(*in_name != '\0') {
+          lower_name[i++] = tolower(*in_name);
+          in_name++;
      }
+     i = 0;          
+     strcat(name, tolower(lower_name));
      
-     return 0;
+     while(i < admins_len && admins[i] != '\0') {   
+          if(admins[i] == name[0]) {
+                j = i;
+                k = 0;
+                while(j < admins_len && k < len && admins[j] == name[k]) {
+                     j++;
+                     k++;
+                }
+                if(k == len) return i;
+          }
+          i++;
+     }
+     return -1;
 }
 
 // this function takes a single string. The first word of the string is the name of the person to send the pm to.
@@ -159,7 +180,7 @@ void process_raw_text (const char *data) {
   	if(!strcmp(my_name, chat_name))return; // Don't talk to myself
   	if (debug >= 3) log_info ("I've got %s\n", chat_name);
 
-  	if (strncasecmp (data+10, boss_name, len) == 0) {
+  	if (strncasecmp (data+10, boss_name, len) == 0 || get_admins_string(chat_name, len2)) {
 		if (debug >= 3) log_info("It's from the boss!\n");
 
 		if (strcasecmp (data+10+len, ": #die]") == 0) {
@@ -242,14 +263,14 @@ void process_text_message(const char *data, int PM) {
         }
       }
 
-      if((!strncasecmp(data,"echo",4)) && data[4] != '\0' && data[5] != '\0' && data[6] != '\0') {
+      if(get_admins_string(chat_name, strlen(chat_name)) && (!strncasecmp(data,"echo",4)) && data[4] != '\0' && data[5] != '\0' && data[6] != '\0') {
           strncpy(text, data+5, (strlen(data+4))-1);
           strcpy(text+(strlen(data+4)-2), "\0"); 
           send_raw_text(text);
           return;
       }
       
-      if((!strncasecmp(data,"send",4)) && data[4] != '\0' && data[5] != '\0' && data[6] != '\0') {
+      if(get_admins_string(chat_name, strlen(chat_name)) && (!strncasecmp(data,"send",4)) && data[4] != '\0' && data[5] != '\0' && data[6] != '\0') {
           int i = 5, j = 0;
           char toname[30];
 
@@ -437,9 +458,9 @@ void do_event_loop () {
     
     if(insult_enemy == 1 && last_attack <= time && first_node)
     {
+         last_attack = time+3000;          
          if((me=pf_get_our_actor()) != NULL) {
               if(me->fighting != 1) {           
-                  last_attack = time+3000;
                   if((first_node->time - 2000) <= time && !actors_list[first_node->k]->fighting)
                   {
                        int i = first_node->k;
@@ -450,9 +471,7 @@ void do_event_loop () {
                        if((first_node->time) <= time) attack(actors_list[i]->actor_id);
                   }
               }
-              else last_attack = time+3000;       // Compensate, and check again sooner
          }
-         else last_attack = time+3000;       // Compensate, and check again sooner
     }
     SDL_Delay (100);
   }
@@ -542,6 +561,8 @@ int main (int argc, const char ** argv) {
   //Set the over-ridden debug level
   if(_debug)debug=_debug;
   if(debug >= 5) port=2001;
+  
+  load_admins();
 
   err = init_connection (hostname, port);
   if (err) {

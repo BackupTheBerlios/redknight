@@ -1,62 +1,62 @@
-# Project: Elbot
+# Project: Red Knight
 # Makefile created by Dev-C++ 4.9.9.1
 
 CPP  = g++.exe
 CC   = gcc.exe
 WINDRES = windres.exe
-RES  = elbot_2_private.res
-OBJ  = connection.o elbot.o initvars.o log.o args.o actors.o stories.o local.o fortune.o pathfinder.o asc.o $(RES)
-LINKOBJ  = connection.o elbot.o initvars.o log.o args.o actors.o stories.o local.o fortune.o pathfinder.o asc.o $(RES)
+RES  = 
+OBJ  = ../../redknight/connection.o ../../redknight/elbot.o ../../redknight/initvars.o ../../redknight/log.o ../../redknight/args.o ../../redknight/actors.o ../../redknight/stories.o ../../redknight/local.o ../../redknight/fortune.o ../../redknight/pathfinder.o ../../redknight/asc.o ../../redknight/custom.o $(RES)
+LINKOBJ  = ../../redknight/connection.o ../../redknight/elbot.o ../../redknight/initvars.o ../../redknight/log.o ../../redknight/args.o ../../redknight/actors.o ../../redknight/stories.o ../../redknight/local.o ../../redknight/fortune.o ../../redknight/pathfinder.o ../../redknight/asc.o ../../redknight/custom.o $(RES)
 LIBS =  -L"C:/Dev-Cpp/lib" -L"C:/Dev-Cpp/lib" -lSDL -lSDL_net   
 INCS =  -I"C:/Dev-Cpp/include" 
 CXXINCS =  -I"C:/Dev-Cpp/include/c++"  -I"C:/Dev-Cpp/include/c++/mingw32"  -I"C:/Dev-Cpp/include/c++/backward"  -I"C:/Dev-Cpp/include" 
-BIN  = elbot.exe
+BIN  = ../redknight.exe
 CXXFLAGS = $(CXXINCS)   -w
 CFLAGS = $(INCS) -DWINDOWS -D_WIN32 -fexpensive-optimizations -O3   -w
 
 .PHONY: all all-before all-after clean clean-custom
 
-all: all-before elbot.exe all-after
+all: all-before ../redknight.exe all-after
 
 
 clean: clean-custom
 	rm -f $(OBJ) $(BIN)
 
 $(BIN): $(OBJ)
-	$(CC) $(LINKOBJ) -o "elbot.exe" $(LIBS)
+	$(CC) $(LINKOBJ) -o "..\redknight.exe" $(LIBS)
 
-connection.o: connection.c
-	$(CC) -c connection.c -o connection.o $(CFLAGS)
+../../redknight/connection.o: connection.c
+	$(CC) -c connection.c -o ../../redknight/connection.o $(CFLAGS)
 
-elbot.o: elbot.c
-	$(CC) -c elbot.c -o elbot.o $(CFLAGS)
+../../redknight/elbot.o: elbot.c
+	$(CC) -c elbot.c -o ../../redknight/elbot.o $(CFLAGS)
 
-initvars.o: initvars.c
-	$(CC) -c initvars.c -o initvars.o $(CFLAGS)
+../../redknight/initvars.o: initvars.c
+	$(CC) -c initvars.c -o ../../redknight/initvars.o $(CFLAGS)
 
-log.o: log.c
-	$(CC) -c log.c -o log.o $(CFLAGS)
+../../redknight/log.o: log.c
+	$(CC) -c log.c -o ../../redknight/log.o $(CFLAGS)
 
-args.o: args.c
-	$(CC) -c args.c -o args.o $(CFLAGS)
+../../redknight/args.o: args.c
+	$(CC) -c args.c -o ../../redknight/args.o $(CFLAGS)
 
-actors.o: actors.c
-	$(CC) -c actors.c -o actors.o $(CFLAGS)
+../../redknight/actors.o: actors.c
+	$(CC) -c actors.c -o ../../redknight/actors.o $(CFLAGS)
 
-stories.o: stories.c
-	$(CC) -c stories.c -o stories.o $(CFLAGS)
+../../redknight/stories.o: stories.c
+	$(CC) -c stories.c -o ../../redknight/stories.o $(CFLAGS)
 
-local.o: local.c
-	$(CC) -c local.c -o local.o $(CFLAGS)
+../../redknight/local.o: local.c
+	$(CC) -c local.c -o ../../redknight/local.o $(CFLAGS)
 
-fortune.o: fortune.c
-	$(CC) -c fortune.c -o fortune.o $(CFLAGS)
+../../redknight/fortune.o: fortune.c
+	$(CC) -c fortune.c -o ../../redknight/fortune.o $(CFLAGS)
 
-pathfinder.o: pathfinder.c
-	$(CC) -c pathfinder.c -o pathfinder.o $(CFLAGS)
+../../redknight/pathfinder.o: pathfinder.c
+	$(CC) -c pathfinder.c -o ../../redknight/pathfinder.o $(CFLAGS)
 
-asc.o: asc.c
-	$(CC) -c asc.c -o asc.o $(CFLAGS)
+../../redknight/asc.o: asc.c
+	$(CC) -c asc.c -o ../../redknight/asc.o $(CFLAGS)
 
-elbot_2_private.res: elbot_2_private.rc 
-	$(WINDRES) -i elbot_2_private.rc --input-format=rc -o elbot_2_private.res -O coff 
+../../redknight/custom.o: ../custom.c
+	$(CC) -c ../custom.c -o ../../redknight/custom.o $(CFLAGS)

@@ -3,7 +3,6 @@
  *TODO:
  *    -Load stories from file.
  *    -Load descriptions from a file.
- *    -Load and parse admins.st+allowable.lst
  *    -Fix log support (some are incorrect) & debugging (only 3 Debug levels!?)
  *    -Support local chat, without parsing ANY extra conversations
  *    -Code clean-up: remove unused variables and increase processing speed
