@@ -1,0 +1,7 @@
+--Storebot
+crusadingknight <crusadingknight@gawab.com>
+
+--Previous Maintainers
+(Athosino) < ? >
+Bongo < ? >
+*Derived from the elbot project.
