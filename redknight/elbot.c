@@ -188,6 +188,7 @@ void process_raw_text (const char *data) {
 //This functions figures out the text type, and responds accordingly
 void process_text_message(const char *msg, int PM) { 
     char text[1024];
+    char *data = malloc(256);
     int i=0;    
 
     if(PM==1)
