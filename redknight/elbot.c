@@ -457,19 +457,17 @@ void do_event_loop () {
     // We rely on our actor existing so we can complete the following...
     timed_pf_move(time);
     
-    if(insult_enemy == 1 && last_attack <= time && first_node)
-    {
-         last_attack = time+3000;          
+    if(insult_enemy == 1 && (last_attack <= time) && (first_node != NULL))
+    {        
+         last_attack = time+2500;          
          if((me=pf_get_our_actor()) != NULL) {
               if(me->fighting != 1) {           
-                  if((first_node->time - 2000) <= time && !actors_list[first_node->k]->fighting)
-                  {
-                       int i = first_node->k;
-             
-                       pseudo_pf_find_path(actors_list[i]->x_tile_pos, 
-                                           actors_list[i]->y_tile_pos);
+                  if((first_node->time - 2000) <= time && !(first_node->k->fighting))
+                  {             
+                       pseudo_pf_find_path(first_node->k->x_tile_pos, 
+                                           first_node->k->y_tile_pos);
                                  
-                       if((first_node->time) <= time) attack(actors_list[i]->actor_id);
+                       if((first_node->time) <= time) attack(first_node->k->actor_id);
                   }
               }
          }

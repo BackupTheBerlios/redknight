@@ -58,6 +58,7 @@ void add_actor_from_server(char * in_data, int kill)
 	                   my_strncp(actors_list[i]->actor_name,&in_data[28],30); //<--Enhanced
                   }
                   // Don't alloc kill_queue, because it already will/won't exist
+                  return;
              }                  
     }
     if (i >= max_actors+1) return;
@@ -74,33 +75,34 @@ void add_actor_from_server(char * in_data, int kill)
     if(kill == 1) {
         new_node = calloc(sizeof(struct kill_queue), 1);
         new_node->time = SDL_GetTicks() + 10000;
-        new_node->k = i;
+        new_node->k = actors_list[i];
         actors_list[i]->k = new_node;
         if(first_node == NULL) {
+            if(debug >= DEBUG_LOW)log_info("Adding to Front\n");          
             first_node = new_node;
             last_node = new_node;
             first_node->next = NULL;
             first_node->prev = NULL;
-        } else {  
-             last_node->next = new_node;
-             new_node->prev = last_node;
-             new_node->next = NULL;
-             last_node = new_node;
+        } else {
+            if(debug >= DEBUG_LOW)log_info("Adding to Back\n");     
+            last_node->next = new_node;
+            new_node->prev = last_node;
+            new_node->next = NULL;
+            last_node = new_node;
         }
     }    
     max_actors++;
     if(debug >= DEBUG_LOW)log_info("Finished adding actor.\n");
 }
 
-//POSSIBLE FIXME
 void destroy_all_actors()
 {
      int i = 0;
+     struct kill_queue *tofree;
      
-     first_node = last_node = NULL;
-     
+     first_node = last_node = NULL;     
      if(debug >= DEBUG_LOW)log_info("Destroy all actors.\n");
-          
+               
      for(i=0;i<max_actors;i++)
 		{
 			if(actors_list[i])
@@ -112,13 +114,14 @@ void destroy_all_actors()
 	                 actors_list[i]->fighting=NULL;
 	                 
                      if(actors_list[i]->k) {
-                          actors_list[i]->k->prev=NULL;
-                          actors_list[i]->k->next=NULL;
-                          actors_list[i]->k->k=NULL;
-                          actors_list[i]->k->time=NULL;
-                          free(actors_list[i]->k);                          
+                          tofree = actors_list[i]->k;
+                          tofree->prev=NULL;
+                          tofree->next=NULL;
+                          tofree->k=NULL;
+                          tofree->time=NULL;
+                          free(tofree);
                      }                                 
-                     actors_list[i]->k=NULL;
+                     actors_list[i]->k = tofree = NULL;
                      
 	                 free(actors_list[i]);
                      actors_list[i]=NULL;
@@ -128,20 +131,18 @@ void destroy_all_actors()
         if(debug >= DEBUG_LOW)log_info("Finished destroying all actors.\n");    
 }
 
-// POSSIBLE FIXME
 void destroy_actor(int actor_id)
 {
      int i = 0;
      struct kill_queue *tofree;
-     
-     if(debug >= DEBUG_LOW)log_info("Destroy actor. Max Actors was %d.\n", max_actors);
           
      for(i=0;i<max_actors;i++)
 		{
 			if(actors_list[i])
 				{
                  	if(actors_list[i]->actor_id==actor_id)
-                 		{                            
+                 		{
+                            if(debug >= DEBUG_LOW)log_info("Destroy actor. Max Actors was %d.\n", max_actors);                                                          
                             actors_list[i]->actor_id=NULL;
 	                        actors_list[i]->x_tile_pos=NULL;
 	                        actors_list[i]->y_tile_pos=NULL;
@@ -154,7 +155,7 @@ void destroy_actor(int actor_id)
                                        tofree->prev->next = tofree->next;
                                        tofree->next->prev = tofree->prev;
                                   }
-                                 else if(!tofree->next && tofree->prev) {
+                                  else if(!tofree->next && tofree->prev) {
                                        last_node = tofree->prev;
                                        tofree->prev->next = NULL;
                                   }

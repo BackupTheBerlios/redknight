@@ -377,7 +377,7 @@ int pf_is_tile_occupied(int x, int y)
 // Return if we can continue, or are busy
 void timed_pf_move(unsigned int mytime)
 {
-     if(((path_time + 3000) < mytime) && pf_follow_path == 1) {
+     if(((path_time + 2500) < mytime) && pf_follow_path == 1) {
          if(!pf_move()) log_info("Cannot move!");
          path_time = mytime;
          return;        
