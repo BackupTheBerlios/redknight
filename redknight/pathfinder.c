@@ -121,9 +121,7 @@ int load_map(char * name)
     else if(!strcmp("startmap.elm", name)) return 1;
     else if(!strcmp("map2.elm", name)) return 2;
     else if(!strcmp("map3.elm", name)) return 3;
-    else if(!strcmp("map5nf.elm", name)) return 4;
-    else if(!strcmp("guildmap_co.elm", name)) return 1337;// :P This means we're 
-                                                          // in the guild map                                                                                                                
+    else if(!strcmp("map5nf.elm", name)) return 1337;                                                                                                            
     else {
          log_error("Map %s shouldn't be here!", name);
          send_raw_text("#beam me");    // Don't have a clue where we are... 

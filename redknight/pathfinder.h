@@ -34,7 +34,7 @@ typedef struct
      int id;
 } ENTRY_MAP;
 
-extern ENTRY_MAP bot_path[5];
+extern ENTRY_MAP bot_path[4];
 extern unsigned short cur_map;
 
 extern PF_TILE *pf_tile_map;
