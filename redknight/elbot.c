@@ -111,6 +111,7 @@ int get_admins_string(char * in_name, int len)
           }
           i++;
      }
+     log_info("Couldn't Process %s, len %d", name, len);
      return -1;
 }
 
@@ -180,7 +181,7 @@ void process_raw_text (const char *data) {
   	if(!strcmp(my_name, chat_name))return; // Don't talk to myself
   	if (debug >= 3) log_info ("I've got %s\n", chat_name);
 
-  	if (strncasecmp (data+10, boss_name, len) == 0 || get_admins_string(chat_name, len2)) {
+  	if (strncasecmp (data+10, boss_name, len) == 0|| get_admins_string(chat_name, len2) != -1) {
 		if (debug >= 3) log_info("It's from the boss!\n");
 
 		if (strcasecmp (data+10+len, ": #die]") == 0) {
@@ -263,14 +264,14 @@ void process_text_message(const char *data, int PM) {
         }
       }
 
-      if(get_admins_string(chat_name, strlen(chat_name)) && (!strncasecmp(data,"echo",4)) && data[4] != '\0' && data[5] != '\0' && data[6] != '\0') {
+      if(get_admins_string(chat_name, strlen(chat_name)) != -1 && (!strncasecmp(data,"echo",4)) && data[4] != '\0' && data[5] != '\0' && data[6] != '\0') {
           strncpy(text, data+5, (strlen(data+4))-1);
           strcpy(text+(strlen(data+4)-2), "\0"); 
           send_raw_text(text);
           return;
       }
       
-      if(get_admins_string(chat_name, strlen(chat_name)) && (!strncasecmp(data,"send",4)) && data[4] != '\0' && data[5] != '\0' && data[6] != '\0') {
+      if(get_admins_string(chat_name, strlen(chat_name) != -1) && (!strncasecmp(data,"send",4)) && data[4] != '\0' && data[5] != '\0' && data[6] != '\0') {
           int i = 5, j = 0;
           char toname[30];
 
