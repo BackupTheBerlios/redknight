@@ -271,7 +271,7 @@ void process_text_message(const char *data, int PM) {
           return;
       }
       
-      if(get_admins_string(chat_name, strlen(chat_name) != -1) && (!strncasecmp(data,"send",4)) && data[4] != '\0' && data[5] != '\0' && data[6] != '\0') {
+      if(get_admins_string(chat_name, strlen(chat_name)) != -1 && (!strncasecmp(data,"send",4)) && data[4] != '\0' && data[5] != '\0' && data[6] != '\0') {
           int i = 5, j = 0;
           char toname[30];
 
