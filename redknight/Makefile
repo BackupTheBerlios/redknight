@@ -7,12 +7,12 @@ PLATFORM=-march=i686
 # basic compiling and linking - rarely changed
 CC=cc
 CPP=c++
-CFLAGS=$(PLATFORM) -Wall -W -ggdb -pipe $(OPTIONS) $(shell sdl-config --cflags)
-_CFLAGS=$(PLATFORM) -O3 -fomit-frame-pointer -ffast-math -pipe $(OPTIONS) $(shell sdl-config --cflags)
-LDFLAGS=-lSDL_net
-_LDFLAGS=-lSDL_net
+CFLAGS=$(PLATFORM) -Wall -W -ggdb -pipe $(OPTIONS)
+_CFLAGS=$(PLATFORM) -O3 -fomit-frame-pointer -ffast-math -pipe $(OPTIONS)
+LDFLAGS=-lSDL -lSDL_net
+_LDFLAGS=-lSDL -lSDL_net
 STATICLIBS=libs/libSDL_net.a libs/libSDL.a
-OBJS=connection.o elbot.o initvars.o log.o args.o actors.o stories.o local.o fortune.o pathfinder.o asc.o
+OBJS=connection.o elbot.o initvars.o log.o args.o actors.o stories.o local.o fortune.o pathfinder.o asc.o custom.o
 
 
 clean: clean-custom
