@@ -37,7 +37,8 @@ int version_major=0, version_minor=3, patch_version=9;
 
 char my_name[40], my_password[40], my_guild[5], boss_name[40], quit_message[50], greet_message[50], enemy_guild[5], insult_message[50];
 char pubgreet1[50], pubgreet2[50], pubgreet3[50];
-int debug, hail_master, hail_everyone, hail_guild, insult_enemy;
+int debug = -1;
+int hail_master, hail_everyone, hail_guild, insult_enemy;
 
 /* The connection: host name and port number */
 char *hostname = "eternal-lands.solexine.fr";
@@ -53,7 +54,6 @@ int last_attack;
 /* Not sure where else to put this... */
 char name[40], guild[5];
 int yourself;
-int _debug=0;
 
 /* Function Prototypes */
 void process_text_message(const char *data, int PM);
@@ -126,7 +126,7 @@ void send_pm (unsigned char *fmt, ...) {
   va_start (ap, fmt);
   vsnprintf (msg+1, 256-2, fmt, ap);
 
-  if (debug >=5) log_info ("trying to send: %s\n", msg);
+  if (debug >= DEBUG_HIGH) log_info ("trying to send: %s\n", msg);
   send_to_server (msg, strlen(msg+1) + 2);
 }
 
@@ -163,46 +163,36 @@ void process_raw_text (const char *data) {
   
   strcpy (chat_seperator, ":");
 
-  if (debug >= 2) log_info ("%s\n", data);
+  if (debug >= DEBUG_MEDIUM) log_info ("%s\n", data);
   if ((unsigned char) data[0] != 128 + c_red1) return;
-  if (debug >= 3) log_info ("Looks like chat...\n");
+  if (debug >= DEBUG_HIGH) log_info ("Looks like chat...\n");
 
   if (strncasecmp (data+1, "[PM from ", 9) == 0) {
   	PM=1;
     len = strlen (boss_name);
 	loc = strstr(data, chat_seperator);
 
-	if (debug >= 3) log_info ("I got a PM!\n");
+	if (debug >= DEBUG_HIGH) log_info ("I got a PM!\n");
 
   	len2 = loc-data - 10;
   	strncpy (chat_name, data+10, len2);
   	strcpy (chat_name+len2, "\0");
   	
   	if(!strcmp(my_name, chat_name))return; // Don't talk to myself
-  	if (debug >= 3) log_info ("I've got %s\n", chat_name);
+  	if (debug >= DEBUG_HIGH) log_info ("I've got %s\n", chat_name);
 
-  	if (strncasecmp (data+10, boss_name, len) == 0|| get_admins_string(chat_name, len2) != -1) {
-		if (debug >= 3) log_info("It's from the boss!\n");
-
-		if (strcasecmp (data+10+len, ": #die]") == 0) {
-                        if (debug >= 3) log_info("The boss wants me to quit!\n");
-
-                        send_pm ("%s Yes sir, %s\0", chat_name, chat_name);
-                        send_raw_text ("%s\0", quit_message);
-                        exit_connection (EXIT_ALL);
-                        exit (0);
-                }
-		if (strcasecmp (data+10+len, ": #move]") == 0) {
-                if(pseudo_pf_find_path(50, 50)) {
-                     return;
-                }
-        }
+    // Deprecated, but you may have some use for it
+    // No idea why, though...
+    #ifdef DEPRECATED
+  	if (strncasecmp (data+10, boss_name, len) == 0 || get_admins_string(chat_name, len2) != -1) {
+		if (debug >= DEBUG_HIGH) log_info("It's from the boss!\n");
   	}
   	else {
-		if (debug >= 3) {
+		if (debug >= DEBUG_HIGH) {
   		log_info ("Not the boss\n");
 		}
     }
+    #endif
 
 	if(PM!=0) process_text_message(data+10+len2+2,1);
   }
@@ -213,19 +203,19 @@ void process_raw_text (const char *data) {
 void process_text_message(const char *data, int PM) { 
     int x=0,y=0,z=0;
     char des_name[300];
-    char text[300];
-    int i=0;
-    
-    if(debug>=3)log_info("PM: %s\n", data);
+    char text[1024];
+    int i=0;    
 
-    //FIXME -- Load describe me's/playername from file
     if(PM==1)
     {
-      if(!strncasecmp(data/*in_text*/,"describe",8) && data[8] != '\0' && data[9] != '\0' && data[10] != '\0')
+      /*  //Unless someone wants to add local support ... 
+          //FIXME -- Load describe me's/playername from file
+      
+      if(!strncasecmp(data,"describe",8) && data[8] != '\0' && data[9] != '\0' && data[10] != '\0')
       { 
-        if(debug >= 3)log_info("Describing...");    
+        if(debug >= DEBUG_HIGH)log_info("Describing...");    
 
-        if(!strcasecmp(data/*in_text*/,"describe me]"))
+        if(!strcasecmp(data,"describe me]"))
         {
             if(!strcasecmp(chat_name,"crusadingknight"))
             {
@@ -245,13 +235,13 @@ void process_text_message(const char *data, int PM) {
         }
         else
         {
-            if(!strcasecmp(data/*in_text*/,"describe crusadingknight]"))
+            if(!strcasecmp(data,"describe crusadingknight]"))
 
             {
                 send_pm("%s %s", chat_name, "He is my lord and master.");
                 return;
             }
-            if(!strcasecmp(data/*in_text*/,"describe tirashazor]"))
+            if(!strcasecmp(data,"describe tirashazor]"))
             {
                 send_pm("%s %s", chat_name, "He calls me a 'bith'!.");
                 return;
@@ -263,80 +253,99 @@ void process_text_message(const char *data, int PM) {
             return;
         }
       }
-
-      if(get_admins_string(chat_name, strlen(chat_name)) != -1 && (!strncasecmp(data,"echo",4)) && data[4] != '\0' && data[5] != '\0' && data[6] != '\0') {
-          strncpy(text, data+5, (strlen(data+4))-1);
-          strcpy(text+(strlen(data+4)-2), "\0"); 
-          send_raw_text(text);
-          return;
-      }
       
-      if(get_admins_string(chat_name, strlen(chat_name)) != -1 && (!strncasecmp(data,"send",4)) && data[4] != '\0' && data[5] != '\0' && data[6] != '\0') {
-          int i = 5, j = 0;
-          char toname[30];
+      // End Commented-Out describe section
+      */
 
-          while(data[i] != ' ' && data[i] != '\0') {
-                toname[j++] = data[i++];
-          }                                                                      
-          toname[j] = '\0';
+
+      // tolower' text
+      while(i < strlen(data)) {
+          data[i] = tolower(data[i]);
           i++;
-
-          strncpy(text, data+i, (strlen(data+4))-1);
-          strcat(text, "\0"); 
-          send_pm("%s %s", toname, text);
-          return;
       }
+      i = 0;
       
-      if((!strncasecmp(data,"tell me a story", 15)) && story != -1) {
-          send_pm("%s I'm already telling a story", chat_name);
-          return;
+      if(debug>=2)log_info("PM: %s\n", data);
+      
+      // Commands are prefixed by $, admin commands have no prefix
+      // Help Commands:
+      if((!strncmp(data, "$help", 5))) {
+          // Dump help info
+          sprintf(text, "%s%s%s%s", "Help - Commands:\n",
+               "\"$Story\" -> List story channel, story, etc.\n",
+               "\"$Recite\" -> Read a random story (in ch. 144).\n",
+               "\"$Fortune\" -> Read a random quote.\n");
+          send_pm_enhanced(text, chat_name);
+          return;          
       }
-      if((!strncasecmp(data,"tell me a story", 15)) && story == -1) {
-          send_pm("%s I Know: Harvy&Grim (A Tale in the Desert), Trik (The Battle at the well)", chat_name);
-          return;
-      }
-      if((!strncasecmp(data,"tell me", 7)) && story == -1) {
-          init_story(data+8);
-          return;
-      }      
-      if((!strncasecmp(data,"fortune", 7))) {
+      if((!strncmp(data, "$admin_help", 11))) {
+          // Dump admin help info
+          if(get_admins_string(chat_name, strlen(chat_name)) != -1) {
+               sprintf(text, "%s%s%s", "Admin - Commands:\n",
+                    "\"Echo <text>\" -> Send raw text <text>.\n",
+                    "\"Send <name> <text>\" -> PM <text> to <name>.\n");
+          }
+          else strcpy(text, "R0fl, slave; U r not ~ admin!!`");
+          send_pm_enhanced(text, chat_name);
+          return;          
+      }                     
+      
+      // Normal Commands :      
+      if((!strncmp(data,"$fortune", 8))) {
           get_quote("fortune.dat", chat_name);
           return;
       }
-
-      //Shouldn't need this anymore
-      if((!strncasecmp(data, "skip", 4))){
-          story=14;
+      
+      if((!strncmp(data, "$story", 6))) {
+          // Dump story info
+          strcpy(text, dump_story());     // A lot of the info is global, or 
+                                          // shouldn't be...
+          send_pm_enhanced(text, chat_name);
           return;
-      }               
+      }
+      if((!strncmp(data, "$recite", 7))) {
+          random_story();
+          return;
+      }
+            
+      // Admin Commands:
+      // (Players won't know if they actidentally activate them)
+      if(get_admins_string(chat_name, strlen(chat_name)) != -1) {
+          if((!strncmp(data,"echo",4)) && data[4] != '\0' && data[5] != '\0' && data[6] != '\0') {
+               strncpy(text, data+5, (strlen(data+4))-1);
+               strcpy(text+(strlen(data+4)-2), "\0"); 
+               send_raw_text(text);
+               return;
+          }      
+          if((!strncmp(data,"send",4)) && data[4] != '\0' && data[5] != '\0' && data[6] != '\0') {
+               strncpy(text, data+5, (strlen(data+4))-1);
+               strcpy(text+(strlen(data+4)-2), "\0");
+               send_pm(text);
+               return;
+          }         
+          if((!strncmp(data,"die",3))) {          
+               if (debug >= DEBUG_HIGH) log_info("The boss wants me to quit!\n");
+
+               send_pm ("%s Yes sir, %s\0", chat_name, chat_name);
+               send_raw_text ("%s\0", quit_message);
+               exit_connection (EXIT_ALL);
+               exit (0);
+               return;
+          }
+          
+          
+      }         
+      
+      // Don't understand:
       strncpy(text,data,(strlen(data)-1));
-      strcpy(text+(strlen(data)-1), "\0");  
+      strcpy(text+(strlen(data)-1), "\0");
 
-      send_pm("%s %s!?\0", chat_name,text);
-      send_pm_enhanced("Help - Commands:\n\"Tell me a story\" -> List stories.\n\
-\"Tell me <storyname>\" -> Tell story <storyname>.\n\"Describe <name>\" \
-Describe character <name>, if I know them.\n\"Fortune\" -> Read a random quote.\n\
-I'll be able to do more soon. :)", chat_name);
-
+      send_pm("%s %s!?\0", chat_name, text);
+      send_pm("%s %s", chat_name, "PM me $help for help");
     }
     else
     {
-        //in_text++;//Skip color character
-        if(!strcasecmp((data+x)/*in_text*/,"describe me"))
-        {
-            if(!strcasecmp(chat_name,"crusadingknight"))
-            {
-                send_raw_text("%s %s%s", chat_name, "You are my lord and master, ", chat_name);
-                return;
-            }
-            send_raw_text("%s %s%s", chat_name, "I don't know how you are, ", chat_name);
-         }
-        else
-        {
-            if(!strcasecmp((data+x)/*in_text*/,"describe crusadingknight"))
-                send_raw_text("%s %s", chat_name, "He is my lord and master.");
-        }
-    return;
+        // Local Chat - TODO
     }        
 }
 
@@ -375,7 +384,7 @@ int process_message (unsigned char* msg, int len) {
 	  break;  
    case CHANGE_MAP:		
       {
-          cur_map = -5;
+          cur_map = -1;
           cur_map = load_map(msg+3);          
       }
       break;
@@ -404,7 +413,7 @@ int login (const char *name, const char *passwd) {
 
   str[0] = LOG_IN;
   sprintf ((char *) (str+1), "%s %s", name, passwd);
-  if (debug >= 3) {
+  if (debug >= DEBUG_HIGH) {
   	log_info ("Logging in as %s\n", name);
   }
 
@@ -415,7 +424,7 @@ int login (const char *name, const char *passwd) {
   for (i = 0; i < 100; i++) {
     get_server_message ();
     if (logged_in == LOG_IN_OK) {
-      if (debug >= 3) {
+      if (debug >= DEBUG_HIGH) {
       	log_info ("Login was successful\n");
       }
       return 1;
@@ -479,6 +488,8 @@ void do_event_loop () {
 }
 
 int read_info (char *fname) {
+  int intern_debug = DEBUG_NONE; 
+    
   FILE *fp = fopen (fname, "r");
 
   if(!fp)
@@ -489,11 +500,13 @@ int read_info (char *fname) {
   }
 
   int k;
-  k = init_globals(fp, "login password guild admin quit_message greet_message debug hail_master hail_everyone hail_guild insult_enemy enemy_guild insult_message public_greeting1 public_greeting2 public_greeting3  ", "ssssssiiiiisssss", my_name, my_password, my_guild, boss_name, quit_message, greet_message, &debug, &hail_master, &hail_everyone, &hail_guild, &insult_enemy, enemy_guild, insult_message, pubgreet1, pubgreet2, pubgreet3);
+  k = init_globals(fp, "login password server_port guild admin quit_message greet_message debug hail_master hail_everyone hail_guild insult_enemy enemy_guild insult_message public_greeting1 public_greeting2 public_greeting3", "ssissssiiiiisssss", my_name, my_password, &port, my_guild, boss_name, quit_message, greet_message, &intern_debug, &hail_master, &hail_everyone, &hail_guild, &insult_enemy, enemy_guild, insult_message, pubgreet1, pubgreet2, pubgreet3);
+
+  if(debug == -1) debug = intern_debug;
 
   log_info("running in debug level: %d\n", debug);
 
-  if (debug >= 3) {
+  if (debug >= DEBUG_HIGH) {
   	log_info("geting data. errorlevel: %d\n", k);
   	log_info("My name is \"%s\"\n", my_name);
   	log_info("My password is \"%s\"\n", my_password);
@@ -558,10 +571,6 @@ int main (int argc, const char ** argv) {
     log_error ("Unable to read input file %s%s\n", ROOTDIR, "elbot.dat");
     exit (57);
   }
-
-  //Set the over-ridden debug level
-  if(_debug)debug=_debug;
-  if(debug >= 5) port=2001;
   
   load_admins();
 
