@@ -1,11 +1,12 @@
-/*Includes*/
+// Includes
 #include <stdio.h>
 #include <math.h>
 #include <string.h>
 #include "includes.h"
-/*Definitions*/
+// Definitions
 #define MALE 1  
 #define FEMALE 2
+// Globals
 extern char name[40];
 extern char guild[5];
 extern char my_guild[5];
@@ -13,17 +14,20 @@ extern char boss_name[40];
 extern long queue_len;
 extern int hail_everyone;
 extern int hail_master;
-char *Weapon;
-char *bodyarmor;
-char *legarmor;
-char *Boots;
-char *Helmet;
-char *Cape;
-char *Shield;
+
+struct EquipStrings {
+       char *Weapon;
+       char *bodyarmor;
+       char *legarmor;
+       char *Boots;
+       char *Helmet;
+       char *Cape;
+       char *Shield;
+};
 
 struct kill_queue *first_node = NULL, *last_node = NULL;
 /*Prototypes*/
-void process_equipment(int equipment_part, Uint8 equipment_id);
+void process_equipment(int equipment_part, Uint8 equipment_id, struct EquipStrings *E);
 
 actor *actors_list[1000];
 int max_actors = 0;
@@ -166,22 +170,11 @@ void check_actor_equip(char * in_data)
 {
     int gender=0;//NULL until set 
     int this_actor_id=*((short *)(in_data));
-    int actor_enhanced=1; 
     int kill = 0;
-	Uint8 weapon;    
-    Uint8 actor_type;
-	Uint8 skin;
-	Uint8 hair;
-	Uint8 shirt;
-	Uint8 pants;
-	Uint8 boots;
-	Uint8 frame;
-	Uint8 cape;
-	Uint8 head;
-	Uint8 shield;
-	Uint8 helmet;
-	//x_tile_pos=*((short *)(in_data+2));
-	//y_tile_pos=*((short *)(in_data+4));
+	Uint8 weapon, actor_type, skin, hair, shirt, pants, boots, frame, cape, head;
+	Uint8 shield, helmet;
+    struct EquipStrings e;
+
 	actor_type=*((short *)(in_data+10));
 	if(((actor_type % 2 ==0) && actor_type < 5) || (((actor_type-1) % 2 ==0) && (actor_type-1) < 41) && actor_type > 36)gender=FEMALE;
  	else
@@ -206,16 +199,16 @@ void check_actor_equip(char * in_data)
 	if(this_actor_id != yourself && strcasecmp(my_guild, guild) && strcasecmp(name, boss_name) && name[0] != 3)
 	{
         if(hail_master == 1) {
-            process_equipment(KIND_OF_WEAPON, weapon);
-            process_equipment(KIND_OF_SHIELD, shield);
-            process_equipment(KIND_OF_HELMET, helmet);
-            process_equipment(KIND_OF_LEG_ARMOR, pants);
-            process_equipment(KIND_OF_BODY_ARMOR, shirt);	
-            process_equipment(KIND_OF_BOOT_ARMOR, boots);	
+            process_equipment(KIND_OF_WEAPON, weapon, &e);
+            process_equipment(KIND_OF_SHIELD, shield, &e);
+            process_equipment(KIND_OF_HELMET, helmet, &e);
+            process_equipment(KIND_OF_LEG_ARMOR, pants, &e);
+            process_equipment(KIND_OF_BODY_ARMOR, shirt, &e);	
+            process_equipment(KIND_OF_BOOT_ARMOR, boots, &e);	
             send_pm("%s I see %s, with Weapon: %s, Shield: %s,  Helmet: %s,",
-	        boss_name, name, Weapon, Shield, Helmet);
+	        boss_name, name, e.Weapon, e.Shield, e.Helmet);
 	        send_pm("%s Leg Armor: %s, Body Armor: %s and Boots: %s", boss_name,
-            legarmor, bodyarmor, Boots);
+            e.legarmor, e.bodyarmor, e.Boots);
         }
      }
      add_actor_from_server(in_data, ((insult_enemy ==1) ? kill : 0));    
@@ -319,14 +312,14 @@ void use_object(int id)
      send_to_server(str,9);
 }          
 
-void process_equipment(int equipment_part, Uint8 equipment_id)
+void process_equipment(int equipment_part, Uint8 equipment_id, struct EquipStrings *E)
 {
     if(equipment_part == KIND_OF_WEAPON)
     {
         //None
         if(equipment_id == WEAPON_NONE)
         {
-            Weapon="None";
+            E->Weapon="None";
             return;
         }
             
@@ -334,21 +327,21 @@ void process_equipment(int equipment_part, Uint8 equipment_id)
         if(equipment_id >= SWORD_1 && equipment_id <= SWORD_7)
         {
             switch(equipment_id) {
-                case SWORD_1: Weapon="Iron Sword";
+                case SWORD_1: E->Weapon="Iron Sword";
                     return;
-                case SWORD_2: Weapon="Iron Broad Sword";
+                case SWORD_2: E->Weapon="Iron Broad Sword";
                     return;
-                case SWORD_3: Weapon="Steel Long Sword";
+                case SWORD_3: E->Weapon="Steel Long Sword";
                     return;
-                case SWORD_4: Weapon="Steel Two-Edged Sword";
+                case SWORD_4: E->Weapon="Steel Two-Edged Sword";
                     return;
-                case SWORD_5: Weapon="Titanium-Steel Alloy Short Sword";
+                case SWORD_5: E->Weapon="Titanium-Steel Alloy Short Sword";
                     return;
-                case SWORD_6: Weapon="Titanium-Steel Alloy Long Sword";
+                case SWORD_6: E->Weapon="Titanium-Steel Alloy Long Sword";
                     return;
-                case SWORD_7: Weapon="Titanium Serpent Sword";
+                case SWORD_7: E->Weapon="Titanium Serpent Sword";
                     return;
-                default: Weapon="None";
+                default: E->Weapon="None";
                     return;
             }
         }
@@ -357,19 +350,19 @@ void process_equipment(int equipment_part, Uint8 equipment_id)
         if(equipment_id >= STAFF_1 && equipment_id <= HAMMER_2)
         {
             switch(equipment_id) {
-                case STAFF_1: Weapon="Wooden Staff";
+                case STAFF_1: E->Weapon="Wooden Staff";
                     return;
-                case STAFF_2: Weapon="Quarter Staff";
+                case STAFF_2: E->Weapon="Quarter Staff";
                     return;
-                case STAFF_3: Weapon="Teh Magicz-rz Staff 1";
+                case STAFF_3: E->Weapon="Teh Magicz-rz Staff 1";
                     return;
-                case STAFF_4: Weapon="Teh Magicz-rz Staff 2";
+                case STAFF_4: E->Weapon="Teh Magicz-rz Staff 2";
                     return;
-                case HAMMER_1: Weapon="Wooden Battle Hammer";
+                case HAMMER_1: E->Weapon="Wooden Battle Hammer";
                     return;
-                case HAMMER_2: Weapon="Iron Battle Hammer";
+                case HAMMER_2: E->Weapon="Iron Battle Hammer";
                     return;
-                default: Weapon="None";
+                default: E->Weapon="None";
                     return;
             }
         }
@@ -377,7 +370,7 @@ void process_equipment(int equipment_part, Uint8 equipment_id)
         //Pickaxe
         if(equipment_id == PICKAX)
         {
-            Weapon="Pickaxe";
+            E->Weapon="Pickaxe";
             return;
         }
         
@@ -385,27 +378,27 @@ void process_equipment(int equipment_part, Uint8 equipment_id)
         if(equipment_id >= SWORD_1_FIRE && equipment_id <= SWORD_4_THERMAL)
         {
             switch(equipment_id) {
-                case SWORD_1_FIRE: Weapon="Fire Iron Sword";
+                case SWORD_1_FIRE: E->Weapon="Fire Iron Sword";
                     return;
-                case SWORD_2_FIRE: Weapon="Fire Iron Broad Sword";
+                case SWORD_2_FIRE: E->Weapon="Fire Iron Broad Sword";
                     return;
-                case SWORD_2_COLD: Weapon="Cold Iron Broad Sword";
+                case SWORD_2_COLD: E->Weapon="Cold Iron Broad Sword";
                     return;
-                case SWORD_3_FIRE: Weapon="Fire Steel Long Sword";
+                case SWORD_3_FIRE: E->Weapon="Fire Steel Long Sword";
                     return;
-                case SWORD_3_COLD: Weapon="Cold Steel Long Sword";
+                case SWORD_3_COLD: E->Weapon="Cold Steel Long Sword";
                     return;
-                case SWORD_3_MAGIC: Weapon="Magic Steel Long Sword";
+                case SWORD_3_MAGIC: E->Weapon="Magic Steel Long Sword";
                     return;
-                case SWORD_4_FIRE: Weapon="Fire Steel Two-edged Sword";
+                case SWORD_4_FIRE: E->Weapon="Fire Steel Two-edged Sword";
                     return;
-                case SWORD_4_COLD: Weapon="Cold Steel Two-edged Sword";
+                case SWORD_4_COLD: E->Weapon="Cold Steel Two-edged Sword";
                     return;
-                case SWORD_4_MAGIC: Weapon="Magic Steel Two-edged Sword";
+                case SWORD_4_MAGIC: E->Weapon="Magic Steel Two-edged Sword";
                     return;
-                case SWORD_4_THERMAL: Weapon="Thermal Steel Two-edged Sword";
+                case SWORD_4_THERMAL: E->Weapon="Thermal Steel Two-edged Sword";
                     return;
-                default: Weapon="None";
+                default: E->Weapon="None";
                     return;
             }
         }
@@ -414,31 +407,31 @@ void process_equipment(int equipment_part, Uint8 equipment_id)
         if(equipment_id >= SWORD_5_FIRE && equipment_id <= SWORD_7_THERMAL)
         {
             switch(equipment_id) {
-                case SWORD_5_FIRE: Weapon="Fire Titanium-Steel Short Sword";
+                case SWORD_5_FIRE: E->Weapon="Fire Titanium-Steel Short Sword";
                     return;
-                case SWORD_5_COLD: Weapon="Cold Titanium-Steel Short Sword";
+                case SWORD_5_COLD: E->Weapon="Cold Titanium-Steel Short Sword";
                     return;
-                case SWORD_5_MAGIC: Weapon="Magic Titanium-Steel Short Sword";
+                case SWORD_5_MAGIC: E->Weapon="Magic Titanium-Steel Short Sword";
                     return;
-                case SWORD_5_THERMAL: Weapon="Thermal Titanium-Steel Short Sword";
+                case SWORD_5_THERMAL: E->Weapon="Thermal Titanium-Steel Short Sword";
                     return;
-                case SWORD_6_FIRE: Weapon="Fire Titanium-Steel Long Sword";
+                case SWORD_6_FIRE: E->Weapon="Fire Titanium-Steel Long Sword";
                     return;
-                case SWORD_6_COLD: Weapon="Cold Titanium-Steel Long Sword";
+                case SWORD_6_COLD: E->Weapon="Cold Titanium-Steel Long Sword";
                     return;
-                case SWORD_6_MAGIC: Weapon="Magic Titanium-Steel Long Sword";
+                case SWORD_6_MAGIC: E->Weapon="Magic Titanium-Steel Long Sword";
                     return;
-                case SWORD_6_THERMAL: Weapon="Thermal Titanium-Steel Long Sword";
+                case SWORD_6_THERMAL: E->Weapon="Thermal Titanium-Steel Long Sword";
                     return;
-                case SWORD_7_FIRE: Weapon="Fire Titanium Serpent Sword";
+                case SWORD_7_FIRE: E->Weapon="Fire Titanium Serpent Sword";
                     return;
-                case SWORD_7_COLD: Weapon="Cold Titanium Serpent Sword";
+                case SWORD_7_COLD: E->Weapon="Cold Titanium Serpent Sword";
                     return;
-                case SWORD_7_MAGIC: Weapon="Magic Titanium Serpent Sword";
+                case SWORD_7_MAGIC: E->Weapon="Magic Titanium Serpent Sword";
                     return;
-                case SWORD_7_THERMAL: Weapon="Thermal Titanium Serpent Sword";
+                case SWORD_7_THERMAL: E->Weapon="Thermal Titanium Serpent Sword";
                     return;
-                default: Weapon="None";
+                default: E->Weapon="None";
                     return;
             }
         }
@@ -446,7 +439,7 @@ void process_equipment(int equipment_part, Uint8 equipment_id)
         //Magic Pickaxe
         if(equipment_id == PICKAX_MAGIC)
         {
-            Weapon="Magic Pickaxe";
+            E->Weapon="Magic Pickaxe";
             return;
         }
         
@@ -454,25 +447,25 @@ void process_equipment(int equipment_part, Uint8 equipment_id)
         if(equipment_id >= BATTLEAXE_IRON && equipment_id <= BATTLEAXE_TITANIUM_MAGIC)
         {
             switch(equipment_id) {
-                case BATTLEAXE_IRON: Weapon="Iron Battleaxe";
+                case BATTLEAXE_IRON: E->Weapon="Iron Battleaxe";
                     return;
-                case BATTLEAXE_STEEL: Weapon="Steel Battleaxe";
+                case BATTLEAXE_STEEL: E->Weapon="Steel Battleaxe";
                     return;
-                case BATTLEAXE_TITANIUM: Weapon="Titanium Battleaxe";
+                case BATTLEAXE_TITANIUM: E->Weapon="Titanium Battleaxe";
                     return;
-                case BATTLEAXE_IRON_FIRE: Weapon="Fire Iron Battleaxe";
+                case BATTLEAXE_IRON_FIRE: E->Weapon="Fire Iron Battleaxe";
                     return;
-                case BATTLEAXE_STEEL_COLD: Weapon="Cold Steel Battleaxe";
+                case BATTLEAXE_STEEL_COLD: E->Weapon="Cold Steel Battleaxe";
                     return;
-                case BATTLEAXE_STEEL_FIRE: Weapon="Fire Steel Battleaxe";
+                case BATTLEAXE_STEEL_FIRE: E->Weapon="Fire Steel Battleaxe";
                     return;
-                case BATTLEAXE_TITANIUM_COLD: Weapon="Cold Titanium Battleaxe";
+                case BATTLEAXE_TITANIUM_COLD: E->Weapon="Cold Titanium Battleaxe";
                     return;
-                case BATTLEAXE_TITANIUM_FIRE: Weapon="Fire Titanium Battleaxe";
+                case BATTLEAXE_TITANIUM_FIRE: E->Weapon="Fire Titanium Battleaxe";
                     return;
-                case BATTLEAXE_TITANIUM_MAGIC: Weapon="Magic Titanium Battleaxe";
+                case BATTLEAXE_TITANIUM_MAGIC: E->Weapon="Magic Titanium Battleaxe";
                     return;
-                default: Weapon="None";
+                default: E->Weapon="None";
                     return;
             }
         }
@@ -482,15 +475,15 @@ void process_equipment(int equipment_part, Uint8 equipment_id)
     {
         switch(equipment_id)
         {
-            case SHIELD_WOOD: Shield="Wooden Shield";
+            case SHIELD_WOOD: E->Shield="Wooden E->Shield";
                  return;
-            case SHIELD_WOOD_ENHANCED: Shield="Enhanced Wooden Shield";
+            case SHIELD_WOOD_ENHANCED: E->Shield="Enhanced Wooden E->Shield";
                  return;
-            case SHIELD_IRON: Shield="Iron Shield";
+            case SHIELD_IRON: E->Shield="Iron E->Shield";
                  return;
-            case SHIELD_STEEL: Shield="Steel Shield";
+            case SHIELD_STEEL: E->Shield="Steel E->Shield";
                  return;
-            default: Shield="None";
+            default: E->Shield="None";
                  return;
         }
     }        
@@ -504,13 +497,13 @@ void process_equipment(int equipment_part, Uint8 equipment_id)
     {
         switch(equipment_id)
         {
-            case HELMET_IRON: Helmet="Iron Helm";
+            case HELMET_IRON: E->Helmet="Iron Helm";
                  return;
-            case HELMET_FUR: Helmet="Fur Cap";
+            case HELMET_FUR: E->Helmet="Fur Cap";
                  return;
-            case HELMET_LEATHER: Helmet="Leather Helm";
+            case HELMET_LEATHER: E->Helmet="Leather Helm";
                  return;
-            default: Helmet="None";
+            default: E->Helmet="None";
                  return;
         }    
     }
@@ -518,11 +511,11 @@ void process_equipment(int equipment_part, Uint8 equipment_id)
     {
         switch(equipment_id)
         {
-            case PANTS_LEATHER: legarmor="Leather Pants";
+            case PANTS_LEATHER: E->legarmor="Leather Pants";
                  return;
-            case PANTS_IRON_CUISSES: legarmor="Iron Cuisses";
+            case PANTS_IRON_CUISSES: E->legarmor="Iron Cuisses";
                  return;
-            default: legarmor="None";
+            default: E->legarmor="None";
                  return;
         }    
     }
@@ -530,19 +523,19 @@ void process_equipment(int equipment_part, Uint8 equipment_id)
     {
         switch(equipment_id)
         {
-            case SHIRT_LEATHER_ARMOR: bodyarmor="Leather Armor";
+            case SHIRT_LEATHER_ARMOR: E->bodyarmor="Leather Armor";
                  return;
-            case SHIRT_CHAIN_ARMOR: bodyarmor="Iron Chainmail";
+            case SHIRT_CHAIN_ARMOR: E->bodyarmor="Iron Chainmail";
                  return;
-            case SHIRT_STEEL_CHAIN_ARMOR: bodyarmor="Steel Chainmail";
+            case SHIRT_STEEL_CHAIN_ARMOR: E->bodyarmor="Steel Chainmail";
                  return;
-            case SHIRT_TITANIUM_CHAIN_ARMOR: bodyarmor="Titanium Chainmail";
+            case SHIRT_TITANIUM_CHAIN_ARMOR: E->bodyarmor="Titanium Chainmail";
                  return;
-            case SHIRT_IRON_PLATE_ARMOR: bodyarmor="Iron Plate";
+            case SHIRT_IRON_PLATE_ARMOR: E->bodyarmor="Iron Plate";
                  return;
-            case SHIRT_ARMOR_6: bodyarmor="Some kind of shirt armor!?";
+            case SHIRT_ARMOR_6: E->bodyarmor="Some kind of shirt armor!?";
                  return;
-            default: bodyarmor="None";
+            default: E->bodyarmor="None";
                  return;
         }
     }
@@ -550,13 +543,13 @@ void process_equipment(int equipment_part, Uint8 equipment_id)
     {
         switch(equipment_id)
         {
-            case BOOTS_LEATHER: Boots="Leather Boots";
+            case BOOTS_LEATHER: E->Boots="Leather Boots";
                 return;
-            case BOOTS_FUR: Boots="Fur Boots";
+            case BOOTS_FUR: E->Boots="Fur Boots";
                 return;
-            case BOOTS_IRON_GREAVE: Boots="Iron Greaves";
+            case BOOTS_IRON_GREAVE: E->Boots="Iron Greaves";
                 return;
-            default: Boots="None";
+            default: E->Boots="None";
                 return;
         }    
     }

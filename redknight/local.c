@@ -2,9 +2,6 @@
 #include "includes.h"
 
 // This reads the names of people that come into the bots view and responds.
-//void check_if_we_should_hail (const char *data) {
-       
-//TODO - Fix genders and hailing self if in the guild       
 int check_if_we_should_hail (const char *data, int gender) {
   int i, j, len = strlen (data);
   memset (name, 0, 40);
@@ -28,8 +25,7 @@ int check_if_we_should_hail (const char *data, int gender) {
    }
   }
   else {
-  	if (strcasecmp (my_name, name) != 0 && strcasecmp(my_guild, guild)) { 
-	// This must be configurable without a recompile... later.
+  	if (strcasecmp(my_guild, guild)) { 
 		if (hail_everyone == 1 || (cur_map == 1337 && hail_everyone == 2)) {
   			send_raw_text("%s! %s", name, greet_message);//Greeting, name, greeting message
   			return 1;          //Kill them
@@ -60,33 +56,3 @@ int check_if_we_should_hail (const char *data, int gender) {
    }
   }
 }
-
-/*void send_hail(int hail_type)  //Function is broken, due to the shoddy hack initvars.c 
-{
-    int randint=0;
-    if(hail_type == PUBLIC_GREETING)
-    {
-        while (!(randint > 0 && randint <= NO_PUB_HAIL_MSGS))
-            randint=(rand()%NO_PUB_HAIL_MSGS+2)-1;
-        log_info("Public Greeting One is: %s\0", pubgreet1);
-        log_info("Public Greeting Two is: %s\0", pubgreet2);
-        log_info("Public Greeting Three is: %s\0", pubgreet3);
-        if(!strcmp("",pubgreet1)) strcpy(pubgreet1,"Greetings %s! %s\0");
-        if(!strcmp("",pubgreet2)) strcpy(pubgreet2,"Hello %s. %s\0");
-        if(!strcmp("",pubgreet3)) strcpy(pubgreet3,"Good day to you, %s! %s\0");
-
-        switch(randint)
-        {
-            case 1: send_raw_text("%s",pubgreet1, name, greet_message);
-                return;
-            case 2: send_raw_text("%s",pubgreet2, name, greet_message);
-                return;
-            case 3: send_raw_text("%s %s ",pubgreet3, name, greet_message);
-                return;
-            default: log_error("BAD RANDINT VALUE: %d", randint);
-                return;
-        }
-    }
-    else log_error("Unknown hail_type: %d");      
-}*/ 
-
