@@ -181,33 +181,11 @@ void process_raw_text (const char *data) {
   	if(!strcmp(my_name, chat_name))return; // Don't talk to myself
   	if (debug >= DEBUG_HIGH) log_info ("I've got %s\n", chat_name);
 
-    // Deprecated, but you may have some use for it
-    // No idea why, though...
-    #ifdef DEPRECATED
-  	if (strncasecmp (data+10, boss_name, len) == 0 || get_admins_string(chat_name, len2) != -1) {
-		if (debug >= DEBUG_HIGH) log_info("It's from the boss!\n");
-  	}
-  	else {
-		if (debug >= DEBUG_HIGH) {
-  		log_info ("Not the boss\n");
-		}
-    }
-    #endif
-
 	if(PM!=0) process_text_message(data+10+len2+2,1);
   }
 }
 
-
-//This functions figures out the text type, and responds accordingly
-void process_text_message(const char *data, int PM) { 
-    int x=0,y=0,z=0;
-    char des_name[300];
-    char text[1024];
-    int i=0;    
-
-    if(PM==1)
-    {
+// Old Describe section, kinda useless though...
       /*  //Unless someone wants to add local support ... 
           //FIXME -- Load describe me's/playername from file
       
@@ -255,9 +233,18 @@ void process_text_message(const char *data, int PM) {
       }
       
       // End Commented-Out describe section
-      */
+*/
 
 
+//This functions figures out the text type, and responds accordingly
+void process_text_message(const char *data, int PM) { 
+    int x=0,y=0,z=0;
+    char des_name[300];
+    char text[1024];
+    int i=0;    
+
+    if(PM==1)
+    {
       // tolower' text
       while(i < strlen(data)) {
           data[i] = tolower(data[i]);
@@ -269,73 +256,77 @@ void process_text_message(const char *data, int PM) {
       
       // Commands are prefixed by $, admin commands have no prefix
       // Help Commands:
-      if((!strncmp(data, "$help", 5))) {
-          // Dump help info
-          sprintf(text, "%s%s%s%s", "Help - Commands:\n",
-               "\"$Story\" -> List story channel, story, etc.\n",
-               "\"$Recite\" -> Read a random story (in ch. 144).\n",
-               "\"$Fortune\" -> Read a random quote.\n");
-          send_pm_enhanced(text, chat_name);
-          return;          
-      }
-      if((!strncmp(data, "$admin_help", 11))) {
-          // Dump admin help info
-          if(get_admins_string(chat_name, strlen(chat_name)) != -1) {
-               sprintf(text, "%s%s%s", "Admin - Commands:\n",
-                    "\"Echo <text>\" -> Send raw text <text>.\n",
-                    "\"Send <name> <text>\" -> PM <text> to <name>.\n");
+      if(data[0] == '$') {
+           data++;  //Skip '$'    
+           if((!strncmp(data, "help", 4))) {
+                // Dump help info
+                sprintf(text, "%s%s%s%s", "Help - Commands:\n",
+                    "\"$Story\" -> List story channel, story, etc.\n",
+                    "\"$Recite\" -> Read a random story (in ch. 144).\n",
+                    "\"$Fortune\" -> Read a random quote.\n");
+                send_pm_enhanced(text, chat_name);
+                return;          
+           }
+          if((!strncmp(data, "admin_help", 10))) {
+               // Dump admin help info
+               if(get_admins_string(chat_name, strlen(chat_name)) != -1) {
+                    sprintf(text, "%s%s%s%s", "Admin - Commands:\n",
+                         "\"!Echo <text>\" -> Send raw text <text>.\n",
+                         "\"!Send <name> <text>\" -> PM <text> to <name>.\n",
+                         "\"!Die -> Log off.\n");
+               }
+               else strcpy(text, "R0fl, slave; U r not ~ admin!!`");
+               send_pm_enhanced(text, chat_name);
+               return;          
+          }                     
+      
+          // Normal Commands :      
+          if((!strncmp(data,"fortune", 7))) {
+               get_quote("fortune.dat", chat_name);
+               return;
           }
-          else strcpy(text, "R0fl, slave; U r not ~ admin!!`");
-          send_pm_enhanced(text, chat_name);
-          return;          
-      }                     
       
-      // Normal Commands :      
-      if((!strncmp(data,"$fortune", 8))) {
-          get_quote("fortune.dat", chat_name);
-          return;
-      }
-      
-      if((!strncmp(data, "$story", 6))) {
-          // Dump story info
-          strcpy(text, dump_story());     // A lot of the info is global, or 
-                                          // shouldn't be...
-          send_pm_enhanced(text, chat_name);
-          return;
-      }
-      if((!strncmp(data, "$recite", 7))) {
-          random_story();
-          return;
+          if((!strncmp(data, "story", 5))) {
+               // Dump story info
+               strcpy(text, dump_story());     // A lot of the info is global, or 
+                                               // shouldn't be...
+               send_pm_enhanced(text, chat_name);
+               return;
+          }
+          if((!strncmp(data, "recite", 6))) {
+               random_story();
+               return;
+          }
       }
             
       // Admin Commands:
       // (Players won't know if they actidentally activate them)
-      if(get_admins_string(chat_name, strlen(chat_name)) != -1) {
-          if((!strncmp(data,"echo",4)) && data[4] != '\0' && data[5] != '\0' && data[6] != '\0') {
-               strncpy(text, data+5, (strlen(data+4))-1);
-               strcpy(text+(strlen(data+4)-2), "\0"); 
-               send_raw_text(text);
-               return;
-          }      
-          if((!strncmp(data,"send",4)) && data[4] != '\0' && data[5] != '\0' && data[6] != '\0') {
-               strncpy(text, data+5, (strlen(data+4))-1);
-               strcpy(text+(strlen(data+4)-2), "\0");
-               send_pm(text);
-               return;
-          }         
-          if((!strncmp(data,"die",3))) {          
-               if (debug >= DEBUG_HIGH) log_info("The boss wants me to quit!\n");
+      if(data[0] == '!') {
+          data++;      // Skip '!'  
+          if(get_admins_string(chat_name, strlen(chat_name)) != -1) {                          
+               if((!strncmp(data,"echo",4)) && data[4] != '\0' && data[5] != '\0' && data[6] != '\0') {
+                   strncpy(text, data+5, (strlen(data+4))-1);
+                   strcpy(text+(strlen(data+4)-2), "\0"); 
+                   send_raw_text(text);
+                   return;
+               }      
+               if((!strncmp(data,"send",4)) && data[4] != '\0' && data[5] != '\0' && data[6] != '\0') {
+                   strncpy(text, data+5, (strlen(data+4))-1);
+                   strcpy(text+(strlen(data+4)-2), "\0");
+                   send_pm(text);
+                   return;
+               }         
+               if((!strncmp(data,"die",3))) {          
+                   if (debug >= DEBUG_HIGH) log_info("The boss wants me to quit!\n");
 
-               send_pm ("%s Yes sir, %s\0", chat_name, chat_name);
-               send_raw_text ("%s\0", quit_message);
-               exit_connection (EXIT_ALL);
-               exit (0);
-               return;
-          }
-          
-          
-      }         
-      
+                   send_pm ("%s Yes sir, %s\0", chat_name, chat_name);
+                   send_raw_text ("%s\0", quit_message);
+                   exit_connection (EXIT_ALL);
+                   exit (0);
+                   return;
+               }
+          }          
+      }               
       // Don't understand:
       strncpy(text,data,(strlen(data)-1));
       strcpy(text+(strlen(data)-1), "\0");
