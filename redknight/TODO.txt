@@ -1,0 +1,10 @@
+/*TODO for ELBOT Project. (In Comments so I can view in all IDES)
+ *==============================================================================
+ *TODO:
+ *    -Load stories from file.
+ *    -Fix void send_hail to not hail ourselves
+ *    -Fix log support (some are incorrect) & debugging (only 3 Debug levels!?)
+ *    -Support local chat, without parsing ANY extra conversations
+ *    -Code clean-up: remove unused variables and increase processing speed
+ *    -Add trade support + Inventory support  
+ */

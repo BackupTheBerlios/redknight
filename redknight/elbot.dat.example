@@ -1,0 +1,13 @@
+login=smegolas
+password=
+guild=smeg
+admin=bipolar
+debug=3
+hail_everyone=1
+hail_master=1
+hail_guild=1
+greet_message="Welcome to the house of The Smegs!"
+quit_message="I'm outta here!"
+insult_enemy=1
+enemy_guild="Godz"
+insult_message="I hope you didn't come here to spam..."

@@ -1,0 +1,11 @@
+--Red Knight Project
+-------------------------------------------------------------
+"Brendan MacDonell" <crusadingknight@gawab.com>
+-------------------------------------------------------------
+
+--ELbot
+-------------------------------------------------------------
+"G.W.M. Vissers" <vissers@users.sourceforge.net>
+"Benjamin Long"  <bflong@longbros.com>
+"Brendan MacDonell" <crusadingknight@gawab.com>
+-------------------------------------------------------------

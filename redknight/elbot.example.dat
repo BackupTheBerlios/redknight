@@ -1,0 +1,16 @@
+login="USERNAME"
+password="PASSWORD"
+guild="GUILDSHORTNAME" (ie "*CO*")
+admin="MASTERNAME"
+debug=0|3|5|9
+hail_everyone=0|1|2
+hail_master=0|1|2
+hail_guild=0|1
+greet_message="Begone, fly you fool, or die by mine own hand!"
+quit_message="Bye!"
+insult_enemy=0|1
+enemy_guild="ENEMYGUILDNAME"
+insult_message="INSULTMESSAGE"
+public_greeting1="Good day"
+public_greeting2="Hello %s. %s"
+public_greeting3="Good day %s. %s"
