@@ -219,18 +219,6 @@ void check_actor_equip(char * in_data)
      add_actor_from_server(in_data, ((insult_enemy ==1) ? kill : 0));    
 }
 
-/*
-Underworld - 98, 171 * 18
-IP - 22, 21 * 441
-WS - 720, 137 * 1014 
-DP - 360, 331 * 1884
-*/
-ENTRY_MAP bot_path[4]={
-     {98, 171, 18},
-     {22, 21, 441},
-     {720, 137, 1014},
-     {360, 331, 1884},
-};
 
 void walk_to_base_map()
 {

@@ -113,20 +113,7 @@ int load_map(char * name)
 			pf_tile_map[i].z = height_map[i];
 	    }
 	}
-    // Here, we check which map we're on...
-    // Same junk as I wrote for the client:
-    name += 7;
-    
-    if(!strcmp("mapunderworld1.elm", name)) return 0;
-    else if(!strcmp("startmap.elm", name)) return 1;
-    else if(!strcmp("map2.elm", name)) return 2;
-    else if(!strcmp("map3.elm", name)) return 3;
-    else if(!strcmp("map5nf.elm", name)) return 1337;                                                                                                            
-    else {
-         log_error("Map %s shouldn't be here!", name);
-         send_raw_text("#beam me");    // Don't have a clue where we are... 
-         return -5;                    // Expect to change again soon...
-    }
+    return(check_map(name+7)); 
 }
 
 #define PF_DIFF(a, b) ((a > b) ? a - b : b - a)
