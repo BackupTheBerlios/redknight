@@ -60,6 +60,7 @@ void process_text_message(const char *data, int PM);
 unsigned char logged_in;
 
 
+
 // admin.lst usage
 char admins[100*30];
 int no_admins = 0;
@@ -72,8 +73,7 @@ void load_admins()
      char buffer[30*100];
      int s = 0, c = 0, i = 0, d = 0;
      
-	 if(!(f=open("admin.lst", 0))) return;
-	 
+	 if(!(f=open("admin.lst", 0))) return;	 
 	 
 	 while((s=read(f, &b, 1))) admins[i++] = b;
      close(f);	 
@@ -415,40 +415,44 @@ void do_event_loop () {
   unsigned int last_heart_beat = SDL_GetTicks (), time;
   unsigned char heartbeat = HEART_BEAT;
   int j=0;
+  actor *me = NULL;
 
   while (1) {
-
     get_server_message ();
     
+    // Normal Timers
     time = SDL_GetTicks ();
     if (last_heart_beat + 25 * 1000 < time) {
       /* another 25 seconds have passed.
        * let the server know we're still there before the Grue eats us... */
       send_to_server (&heartbeat, 1);
       last_heart_beat = time;
-    }
+    }    
+    //read?
+    if(story != -1 && story_time <= time )read_story();
 
+    // Action Timers
+    // We rely on our actor existing so we can complete the following...
     timed_pf_move(time);
-
+    
     if(insult_enemy == 1 && last_attack <= time && first_node)
     {
-        last_attack = time+3000;
-        if((first_node->time - 2000) <= time && !actors_list[first_node->k]->fighting)
-        {
-             int i = first_node->k;
+         if((me=pf_get_our_actor()) != NULL) {
+              if(me->fighting != 1) {           
+                  last_attack = time+3000;
+                  if((first_node->time - 2000) <= time && !actors_list[first_node->k]->fighting)
+                  {
+                       int i = first_node->k;
              
-             pseudo_pf_find_path(actors_list[i]->x_tile_pos, 
-                                 actors_list[i]->y_tile_pos);
+                       pseudo_pf_find_path(actors_list[i]->x_tile_pos, 
+                                           actors_list[i]->y_tile_pos);
                                  
-             if((first_node->time) <= time) {
-                 attack(actors_list[i]->actor_id);
-             }
-        }  
+                       if((first_node->time) <= time) attack(actors_list[i]->actor_id);
+                  }
+              }
+         }
+         else last_attack = time+2000;       // Compensate, and check again sooner
     }
-
-    //read?
-    if(story != -1 && story_time <= time )read_story();    
-
     SDL_Delay (100);
   }
 }

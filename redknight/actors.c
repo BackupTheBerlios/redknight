@@ -35,6 +35,7 @@ int max_actors = 0;
 void add_actor_from_server(char * in_data, int kill)
 {     
     int i;
+    int this_actor_id = *((short *)(in_data));
     struct kill_queue *new_node;
              
     for(i=0; i < max_actors+1; i++) {
@@ -42,11 +43,24 @@ void add_actor_from_server(char * in_data, int kill)
                   actors_list[i] = calloc(1, sizeof(actor));
                   break;
              }
+             else if(actors_list[i]->actor_id == this_actor_id) {
+                  // Duplicate Actor ID - Overwrite it
+                  actors_list[i]->actor_id=*((short *)(in_data));
+                  actors_list[i]->fighting=0;
+	              actors_list[i]->x_tile_pos=*((short *)(in_data+2));
+	              actors_list[i]->y_tile_pos=*((short *)(in_data+4));
+	              actors_list[i]->actor_type=*((short *)(in_data+10));
+	              my_strncp(actors_list[i]->actor_name,&in_data[23],30); //<--Actor
+	              if((actors_list[i]->actor_type == 1) || (actors_list[i]->actor_type == 4)) {
+	                   my_strncp(actors_list[i]->actor_name,&in_data[28],30); //<--Enhanced
+                  }
+                  // Don't alloc kill_queue, because it already will/won't exist
+             }                  
     }
     if (i >= max_actors+1) return;
     
     actors_list[i]->actor_id=*((short *)(in_data));
-    actors_list[i]->fighting=0;
+    actors_list[i]->fighting = 0;
 	actors_list[i]->x_tile_pos=*((short *)(in_data+2));
 	actors_list[i]->y_tile_pos=*((short *)(in_data+4));
 	actors_list[i]->actor_type=*((short *)(in_data+10));

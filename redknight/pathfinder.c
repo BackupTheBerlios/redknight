@@ -222,12 +222,12 @@ void pf_add_tile_to_open_list(PF_TILE *current, PF_TILE *neighbour)
 
 int pf_find_path(int x, int y)
 {
-	actor *me;
+	actor *me = pf_get_our_actor();
 	int i;
 	
 	pf_destroy_path();
 	
-	if (!(me = pf_get_our_actor())) {
+	if (me == NULL) {
 		return -1;
 	}
 	
@@ -235,6 +235,7 @@ int pf_find_path(int x, int y)
 	pf_dst_tile = pf_get_tile(x, y);
 	
 	if (!pf_dst_tile || pf_dst_tile->z == 0) {
+        log_error("Invalid Destination!\n");
 		return 0;
 	}
 	
@@ -279,7 +280,8 @@ actor *pf_get_our_actor()
 	int i;
 	
 	if (yourself == -1) {
-		return NULL;
+		log_error("Self ID Unknown!");
+        return NULL;
 	}
 
 	for (i = 0; i < max_actors; i++) {
@@ -290,6 +292,7 @@ actor *pf_get_our_actor()
 		    }
         }
 	}
+	log_error("Can't find self in actors_list!\n");
 	return NULL;
 }
 
@@ -298,9 +301,13 @@ int pf_move()
 	int x, y;
 	actor *me;
 	
-	if (pf_follow_path != 1 || !(me = pf_get_our_actor())) {
+	if(pf_follow_path != 1 || !(me = pf_get_our_actor())) {
         return 0;
 	}
+	
+	if(me->fighting == 1) {
+        return 0;
+    }
 	
 	x = me->x_tile_pos;
 	y = me->y_tile_pos;
@@ -367,6 +374,7 @@ int pf_is_tile_occupied(int x, int y)
 	return 0;
 }
 
+// Return if we can continue, or are busy
 void timed_pf_move(unsigned int mytime)
 {
      if(((path_time + 3000) < mytime) && pf_follow_path == 1) {
@@ -378,7 +386,7 @@ void timed_pf_move(unsigned int mytime)
           walk_to_base_map();
           path_time = mytime;
      }
-     // ... More to come, maybe
+     return;
 } 
 
 // Emulate click functionality, so we don't stick
