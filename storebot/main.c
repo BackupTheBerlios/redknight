@@ -15,7 +15,6 @@
 #include "client_serv.h"
 #include "actors.h"
 #include "privilege.h"
-#include "protocol.h"
 #include "trade.h"
 #include "credit.h"
 #include "misc.h"

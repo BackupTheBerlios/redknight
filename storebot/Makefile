@@ -1,6 +1,6 @@
 CFLAGS=-Wall -ggdb
-LDFLAGS=-lm
-OBJS=actors.o config.o credit.o items.o main.o misc.o privilege.o protocol.o trade.o
+LDFLAGS=-lm -lSDL -lSDL_net
+OBJS=actors.o connection.o config.o credit.o items.o log.o main.o misc.o privilege.o trade.o
 
 storebot: $(OBJS)
 	$(CC) $(CFLAGS) $(LDFLAGS) -o storebot $(OBJS)

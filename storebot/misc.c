@@ -10,7 +10,6 @@
 #endif
 
 #include "elbot.h"
-#include "protocol.h"
 #include "misc.h"
 
 void die()

@@ -8,7 +8,6 @@
 #include "items.h"
 #include "credit.h"
 #include "misc.h"
-#include "protocol.h"
 #include "actors.h"
 #include "types.h"
 #include "config.h"
