@@ -26,7 +26,7 @@ int process_args(int argc, const char **argv)
     if(!strcmp(*argv,"--help") || !strcmp(*argv,"-H")) {
       IS_ARG;
       printf("Usage: ELbot [arguments]\n\n");
-      printf("  -D --debug\t\tSet the debug level to the next argument.\n\t\t\t Possibilities are: 0, 3, 5, 9.\n");
+      printf("  -D --debug\t\tSet the debug level to the next argument.\n\t\t\t Possibilities are: 0 (None), 1, 2, 3(High).\n");
       printf("  -I --input [filename]\tSet the input file to [filename]\n");
       printf("  -H --help\t\tDisplay this information\n");
       printf("  -V --version\t\tDisplay version information\n");
@@ -43,15 +43,15 @@ int process_args(int argc, const char **argv)
         IS_ARG;
         INCREMENT_ARGS();
         switch(**argv) {
-            case '0': _debug=0;
+            case '0': debug=DEBUG_NONE;
                 break;
-            case '3': _debug=3;
+            case '1': debug=DEBUG_LOW;
                 break;
-            case '5': _debug=5;
+            case '2': debug=DEBUG_MEDIUM;
                 break;
-            case '9': _debug=9;
+            case '3': debug=DEBUG_HIGH;
                 break;
-            default: printf("Unknown debug level: %s.\n Please use one of the following levels:0, 3, 5 or 9\n", *argv);
+            default: printf("Unknown debug level: %s.\n Please use one of the following levels:0, 1, 2 or 3\n", *argv);
                 exit(0);
         }    
     }          

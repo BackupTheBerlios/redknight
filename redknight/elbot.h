@@ -22,4 +22,10 @@ extern char *fortune[], *quote[];
 int process_message (unsigned char* msg, int len);
 //void send_hail (int hail_type);
 
+/* The Debug Levels */
+#define DEBUG_NONE        0
+#define DEBUG_LOW         1
+#define DEBUG_MEDIUM      2
+#define DEBUG_HIGH        3 
+
 #endif /* def BOTDEFS__H */

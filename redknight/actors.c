@@ -37,6 +37,8 @@ void add_actor_from_server(char * in_data, int kill)
     int i;
     int this_actor_id = *((short *)(in_data));
     struct kill_queue *new_node;
+    
+    if(debug >= DEBUG_LOW)log_info("Adding actor. Max Actors is %d.\n", max_actors);
              
     for(i=0; i < max_actors+1; i++) {
              if(!actors_list[i]) {
@@ -45,6 +47,7 @@ void add_actor_from_server(char * in_data, int kill)
              }
              else if(actors_list[i]->actor_id == this_actor_id) {
                   // Duplicate Actor ID - Overwrite it
+                  log_error("Duplicate actor_id %d.\n", this_actor_id);
                   actors_list[i]->actor_id=*((short *)(in_data));
                   actors_list[i]->fighting=0;
 	              actors_list[i]->x_tile_pos=*((short *)(in_data+2));
@@ -86,6 +89,7 @@ void add_actor_from_server(char * in_data, int kill)
         }
     }    
     max_actors++;
+    if(debug >= DEBUG_LOW)log_info("Finished adding actor.\n");
 }
 
 //POSSIBLE FIXME
@@ -94,6 +98,8 @@ void destroy_all_actors()
      int i = 0;
      
      first_node = last_node = NULL;
+     
+     if(debug >= DEBUG_LOW)log_info("Destroy all actors.\n");
           
      for(i=0;i<max_actors;i++)
 		{
@@ -117,7 +123,8 @@ void destroy_all_actors()
 	                 free(actors_list[i]);
                      actors_list[i]=NULL;
                 }
-        }    
+        }
+        if(debug >= DEBUG_LOW)log_info("Finished destroying all actors.\n");    
 }
 
 // POSSIBLE FIXME
@@ -125,6 +132,8 @@ void destroy_actor(int actor_id)
 {
      int i = 0;
      struct kill_queue *tofree;
+     
+     if(debug >= DEBUG_LOW)log_info("Destroy actor. Max Actors is %d.\n", max_actors);
           
      for(i=0;i<max_actors;i++)
 		{
@@ -176,6 +185,7 @@ void destroy_actor(int actor_id)
                         }
                 }
         }
+        if(debug >= DEBUG_LOW)log_info("Finished destroying actor.\n");
 }
 
 
@@ -249,7 +259,7 @@ void walk_to_base_map()
                if(!(pseudo_pf_find_path(bot_path[cur_map].x, bot_path[cur_map].y)))
                     log_info("Cannot Move!\n");
                                          // ^- Go there
-               if(debug >= 3) log_info("Moving %dx%d\n", bot_path[cur_map].x, bot_path[cur_map].y);
+               if(debug >= DEBUG_MEDIUM) log_info("Moving %dx%d\n", bot_path[cur_map].x, bot_path[cur_map].y);
                return;
           }
      }

@@ -3,7 +3,7 @@
  *TODO:
  *    -Load stories from file.
  *    -Load descriptions from a file.
- *    -Fix log support (some are incorrect) & debugging (only 3 Debug levels!?)
+ *    -Fix log support (some are incorrect)
  *    -Support local chat, without parsing ANY extra conversations
  *    -Code clean-up: remove unused variables and increase processing speed
  *    -Add trade support + Inventory support  

@@ -46,7 +46,7 @@ int init_connection (char *hostname, short unsigned int port) {
     log_error ("Failed to initialize SDL_net: %s\n", SDLNet_GetError());
     return EXIT_SDL_QUIT;
   }
-  if (debug >= 3) {
+  if (debug >= DEBUG_HIGH) {
     log_info ("SDL network library succesfully initialized\n");
   }
 
@@ -56,7 +56,7 @@ int init_connection (char *hostname, short unsigned int port) {
               SDLNet_GetError());
     return EXIT_SDLNET_QUIT;
   }
-  if (debug >=3) {
+  if (debug >= DEBUG_HIGH) {
   	log_info ("Resolved IP address: %u.%u.%u.%u\n", ipad.host & 0xff,
         	    (ipad.host >> 8) & 0xff, (ipad.host >> 16) & 0xff,
             	ipad.host >> 24);
@@ -69,7 +69,7 @@ int init_connection (char *hostname, short unsigned int port) {
               SDLNet_GetError ());
     return EXIT_SDLNET_QUIT;
   }
-  if (debug >= 3) {
+  if (debug >= DEBUG_HIGH) {
   	log_info ("Connected to game server %s\n", hostname);
   }
 
@@ -85,7 +85,7 @@ int init_connection (char *hostname, short unsigned int port) {
     log_error ("Cannot add socket to set: %s\n", SDLNet_GetError ());
     return EXIT_FREE_SET;
   }
-  if (debug >=3) {
+  if (debug >= DEBUG_HIGH) {
   	log_info ("Socket added to socket set\n");
   }
 
