@@ -1,7 +1,7 @@
 [Project]
-FileName=elbot.dev
+FileName=redknight.dev
 Name=Red Knight
-UnitCount=24
+UnitCount=25
 Type=1
 Ver=1
 ObjFiles=
@@ -15,8 +15,8 @@ CppCompiler=
 Linker=-L"C:/Dev-Cpp/lib" -lSDL -lSDL_net _@@_
 IsCpp=0
 Icon=
-ExeOutput=
-ObjectOutput=
+ExeOutput=..\..\redknight
+ObjectOutput=..\..\redknight
 OverrideOutput=1
 OverrideOutputName=redknight.exe
 HostApplication=
@@ -177,27 +177,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit14]
-FileName=Queue.h
-CompileCpp=0
-Folder=SRC-ELbot
-Compile=1
-Link=1
-Priority=1000
-OverrideBuildCmd=0
-BuildCmd=
-
 [Unit15]
-FileName=stories.c
-CompileCpp=0
-Folder=SRC-ELbot
-Compile=1
-Link=1
-Priority=1000
-OverrideBuildCmd=0
-BuildCmd=
-
-[Unit16]
 FileName=local.h
 CompileCpp=0
 Folder=SRC-ELbot
@@ -207,7 +187,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit17]
+[Unit16]
 FileName=local.c
 CompileCpp=0
 Folder=SRC-ELbot
@@ -217,27 +197,27 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit18]
+[Unit17]
 FileName=stories.h
+CompileCpp=0
 Folder=SRC-ELbot
 Compile=1
 Link=1
 Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
+
+[Unit18]
+FileName=fortune.c
+Folder=SRC-Fortune
+Compile=1
+Link=1
+Priority=1000
+OverrideBuildCmd=0
+BuildCmd=$(CC) -c fortune.c -o fortune.o $(CFLAGS)
 CompileCpp=0
 
 [Unit20]
-FileName=fortune
-Folder=OTHER FILES
-Compile=0
-Link=0
-Priority=1000
-OverrideBuildCmd=0
-BuildCmd=
-CompileCpp=0
-
-[Unit21]
 FileName=pathfinder.h
 Folder=SRC-ELbot
 Compile=1
@@ -247,7 +227,7 @@ OverrideBuildCmd=0
 BuildCmd=
 CompileCpp=0
 
-[Unit22]
+[Unit21]
 FileName=pathfinder.c
 Folder=SRC-ELbot
 Compile=1
@@ -257,18 +237,48 @@ OverrideBuildCmd=0
 BuildCmd=
 CompileCpp=0
 
-[Unit19]
-FileName=fortune.c
-CompileCpp=0
-Folder=SRC-Fortune
+[Unit22]
+FileName=actors.h
+Folder=SRC-ELbot
 Compile=1
 Link=1
 Priority=1000
 OverrideBuildCmd=0
-BuildCmd=$(CC) -c fortune.c -o fortune.o $(CFLAGS)
+BuildCmd=
+CompileCpp=0
+
+[Unit19]
+FileName=fortune
+CompileCpp=0
+Folder=OTHER FILES
+Compile=0
+Link=0
+Priority=1000
+OverrideBuildCmd=0
+BuildCmd=
 
 [Unit23]
-FileName=actors.h
+FileName=asc.c
+CompileCpp=0
+Folder=SRC-ELbot
+Compile=1
+Link=1
+Priority=1000
+OverrideBuildCmd=0
+BuildCmd=
+
+[Unit25]
+FileName=..\TODO.txt
+CompileCpp=0
+Folder=OTHER FILES
+Compile=0
+Link=0
+Priority=1000
+OverrideBuildCmd=0
+BuildCmd=
+
+[Unit14]
+FileName=stories.c
 CompileCpp=0
 Folder=SRC-ELbot
 Compile=1
@@ -278,7 +288,7 @@ OverrideBuildCmd=0
 BuildCmd=
 
 [Unit24]
-FileName=asc.c
+FileName=..\custom.c
 CompileCpp=0
 Folder=SRC-ELbot
 Compile=1

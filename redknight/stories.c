@@ -1,6 +1,4 @@
 #include "stories.h"
-//#define LAST_STORY 1
-//int stories_popularity[LAST_STORY];
 int story=-1;//Set him to read
 int story_pause[NO_STORIES]={7*1000, 4*1000, 7*1000};//Pause for 7 seconds
 int story_passages[NO_STORIES]={15,22,12};
@@ -11,8 +9,7 @@ int which_story=-1;//No story
 char *introduction1="I would recommend remaining silent while I tell the story.";
 char *introduction2="Come,gather round. The story I am about to tell you is \"%s\". It is %f minuutes long.";
 //Story Names
-char * story_name [NO_STORIES]={"A Tale in the Desert", "The Battle at the Well"};
-//char story_passage [number of stories][number of passages][number of charcaters];//Max 10 minutes long.
+char * story_name [NO_STORIES]={"A Tale in the Desert", "The Battle at the Well", "The Struggle for Life"};
 char * story_passage [NO_STORIES][70]={{"The story of the legendary duo of Harvy and Grim is a strange one. They were both born on the same night, just as a meteor was seen in the sky.",
                                       "Normally, such an sign would be taken as a lucky omen, but in their childhoods, both seemed to be cursed with a streak of misfortune.",
                                       "Grim, child of a dwarven mining family in Mynadar, was expected to join the family trade. However, he had a problem - extreme claustrophobia.",
@@ -69,32 +66,28 @@ char * story_passage [NO_STORIES][70]={{"The story of the legendary duo of Harvy
                                      NULL}};
                                      
 char * conclusion="I hope you enjoyed the story. Please come again sometime.";
-
-void init_story(const char *data)
+   
+void random_story()
 {
-     //Randomization didn't seem to work :/ so we use user-defined
-
-     if(!strncasecmp(data, "Harvy&Grim",10))which_story=0;
-     else if(!strncasecmp(data, "Trik",4))which_story=1;
-     else if(!strncasecmp(data, "FOTF",4))which_story=2;
+     which_story = makerand(NO_STORIES);
      
-     else return;       
-       
      story=0;//Set him to read the story
      read_intro();  
      return;
-}    
+}
 
-/*void init_my_story(char * story_name)
+/*
+
+// FIXME+TODO
+void init_my_story(char * story_name)
 {
     sprintf("%s.dat", story_name);
     //Load story --How can we load this phrase by phrase?
     //For now, we'll specify the number of phrases+the length of each phrase
-    //In the header, then before each phrase
- 
-    
-   
-}*/    
+    //In the header, then before each phrase  
+}
+
+*/    
 
 void read_intro()
 {
@@ -113,7 +106,7 @@ void read_conclusion()
 
 void read_story()
 {
-    log_info ("Reading passage %d of story #%d\n", story, which_story);
+    if(debug >= 3)log_info ("Reading passage %d of story #%d\n", story, which_story);
     send_raw_text("@%s", story_passage[which_story][story++]);
     if (!story_passage[which_story][story]) {
         story=-1;//Don't read
@@ -126,8 +119,11 @@ void read_story()
     return;
 }
 
-/* BROKEN */
-void calc_story_time(int STORY) //Need more stories first...
+char *dump_story()
 {
-    story_length=(*(float *)((story_passages[STORY]) * (story_pause[STORY]/1000)/60));
+     char text[1024];
+     sprintf(text, "Reading: %s, Passage #%d.\nNumber of stories I know is %d.", 
+             ((which_story > -1) ? story_name[which_story] : "N/A"), 
+             ((story > -1) ? story : "N/A"), NO_STORIES);
+     return text;
 }

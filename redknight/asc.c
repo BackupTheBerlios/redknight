@@ -1,5 +1,45 @@
 #include "includes.h"
 
+
+int str2int(char *str)
+{
+     int i = 0;
+     int l = 0;
+     int r_int = 0;
+     
+     while(str[i++] != '\0') ;
+     
+     while(i > 0) {
+           switch(str[i])
+           {
+                  case '0': l = 0;
+                  break;
+                  case '1': l = 1;
+                  break;
+                  case '2': l = 2;
+                  break;
+                  case '3': l = 3;
+                  break;
+                  case '4': l = 4;
+                  break;
+                  case '5': l = 5;
+                  break;
+                  case '6': l = 6;
+                  break;
+                  case '7': l = 7;
+                  break;
+                  case '8': l = 8;
+                  break; 
+                  case '9': l = 9;
+                  break;
+                  default: return 0;
+           }
+           r_int += ((exp(i)) * l);
+           i--;
+     }
+     return r_int;
+}
+           
 void my_strcp(Uint8 *dest,const Uint8 * source)
 {
 	while(*source)
@@ -67,17 +107,4 @@ Sint32 my_isupper(const Uint8 *src, int len)
 			len--;
 		}
 	return 1;	// is all upper or all num
-}
-
-Uint8 *my_tolower(Uint8 *src)
-{
-	Uint8 *dest=src;
-
-	if(!dest || !dest[0]) return dest;
-	while(*src)
-		{
-			*src=tolower(*src);
-			src++;
-		}
-	return dest;
 }

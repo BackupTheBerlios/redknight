@@ -245,7 +245,7 @@ void walk_to_base_map()
 {
      actor *me;
           
-     if(pf_follow_path == 1 || pf_follow_path == 2 || cur_map == 1337 || cur_map == -5) return;   
+     if(pf_follow_path == 1 || pf_follow_path == 2 || cur_map == 1337 || cur_map == -1) return;   
                        // Already moving/home/nowhere
      else if((me=pf_get_our_actor())) {
           if(me->x_tile_pos < bot_path[cur_map].x+5 && 
@@ -253,7 +253,6 @@ void walk_to_base_map()
              me->y_tile_pos < bot_path[cur_map].y+5 && 
              me->y_tile_pos > bot_path[cur_map].y-5) {
                  use_object(bot_path[cur_map].id);  // We're here, enter
-                 cur_map++;                         // Next map ...
                  return;
              }
           else {
