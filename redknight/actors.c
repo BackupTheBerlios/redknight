@@ -38,7 +38,7 @@ void add_actor_from_server(char * in_data, int kill)
     int this_actor_id = *((short *)(in_data));
     struct kill_queue *new_node;
     
-    if(debug >= DEBUG_LOW)log_info("Adding actor. Max Actors is %d.\n", max_actors);
+    if(debug >= DEBUG_LOW)log_info("Adding actor. Max Actors was %d.\n", max_actors);
              
     for(i=0; i < max_actors+1; i++) {
              if(!actors_list[i]) {
@@ -124,6 +124,7 @@ void destroy_all_actors()
                      actors_list[i]=NULL;
                 }
         }
+        max_actors = 0;
         if(debug >= DEBUG_LOW)log_info("Finished destroying all actors.\n");    
 }
 
@@ -133,7 +134,7 @@ void destroy_actor(int actor_id)
      int i = 0;
      struct kill_queue *tofree;
      
-     if(debug >= DEBUG_LOW)log_info("Destroy actor. Max Actors is %d.\n", max_actors);
+     if(debug >= DEBUG_LOW)log_info("Destroy actor. Max Actors was %d.\n", max_actors);
           
      for(i=0;i<max_actors;i++)
 		{
@@ -184,6 +185,7 @@ void destroy_actor(int actor_id)
 						        }
                         }
                 }
+                else log_error("Hole in actors_list!\n");
         }
         if(debug >= DEBUG_LOW)log_info("Finished destroying actor.\n");
 }
