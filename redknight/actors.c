@@ -102,6 +102,7 @@ void destroy_all_actors()
         }    
 }
 
+// POSSIBLE FIXME
 void destroy_actor(int actor_id)
 {
      int i = 0;
@@ -112,7 +113,7 @@ void destroy_actor(int actor_id)
 			if(actors_list[i])
 				{
                  	if(actors_list[i]->actor_id==actor_id)
-                 		{
+                 		{                            
                             actors_list[i]->actor_id=NULL;
 	                        actors_list[i]->x_tile_pos=NULL;
 	                        actors_list[i]->y_tile_pos=NULL;
@@ -141,8 +142,8 @@ void destroy_actor(int actor_id)
                                   tofree->next=NULL;
                                   tofree->k=NULL;
                                   tofree->time=NULL;
-                                  free(tofree);
                                   actors_list[i]->k = NULL;
+                                  free(tofree);
                             }                                 
                                                          
 	                 		free(actors_list[i]);
@@ -188,7 +189,8 @@ void check_actor_equip(char * in_data)
   	   if((((actor_type-1) % 2 ==0) && (actor_type-1) < 5) || (((actor_type-2) % 2 ==0) && (actor_type-2) < 41) && actor_type > 36)gender=MALE;
        else log_error("Actor_id %d named %s has no gender! The actor_type (numerical) is %d (Maybe an NPC!?)\n",this_actor_id,in_data+28,actor_type);    
     }
-   	kill = check_if_we_should_hail (((char *) (in_data+28)), gender);
+   	if(this_actor_id != yourself)kill = check_if_we_should_hail (((char *) (in_data+28)), gender);
+   	else kill = 0;
     skin=*(in_data+12);
 	hair=*(in_data+13);
 	shirt=*(in_data+14);
@@ -237,7 +239,8 @@ void walk_to_base_map()
              }
           else {
                pf_follow_path = 2;
-               pseudo_pf_find_path(bot_path[cur_map].x, bot_path[cur_map].y);
+               if(!(pseudo_pf_find_path(bot_path[cur_map].x, bot_path[cur_map].y)))
+                    log_info("Cannot Move!\n");
                                          // ^- Go there
                if(debug >= 3) log_info("Moving %dx%d\n", bot_path[cur_map].x, bot_path[cur_map].y);
                return;

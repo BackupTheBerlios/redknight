@@ -428,7 +428,7 @@ void process_text_message(const char *data, int PM) {
 
       }
       
-      if((!strncasecmp(data,"tell",4)) && data[4] != '\0' && data[5] != '\0' && data[6] != '\0') {
+      if((!strncasecmp(data,"send",4)) && data[4] != '\0' && data[5] != '\0' && data[6] != '\0') {
           int i = 5, j = 0;
           char toname[30];
 
@@ -573,7 +573,7 @@ int process_message (unsigned char* msg, int len) {
 
     case ADD_NEW_ACTOR:
       {
-        add_actor_from_server(msg+3, 1);             // Kill monsters
+            add_actor_from_server(msg+3, ((cur_map == 1337) ? 1 : 0));             // Kill monsters
       }
 
       break;
