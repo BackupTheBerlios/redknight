@@ -450,8 +450,9 @@ void do_event_loop () {
                        if((first_node->time) <= time) attack(actors_list[i]->actor_id);
                   }
               }
+              else last_attack = time+3000;       // Compensate, and check again sooner
          }
-         else last_attack = time+2000;       // Compensate, and check again sooner
+         else last_attack = time+3000;       // Compensate, and check again sooner
     }
     SDL_Delay (100);
   }
