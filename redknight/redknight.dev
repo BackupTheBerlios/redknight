@@ -1,7 +1,7 @@
 [Project]
 FileName=redknight.dev
 Name=Red Knight
-UnitCount=25
+UnitCount=26
 Type=1
 Ver=1
 ObjFiles=
@@ -268,11 +268,11 @@ OverrideBuildCmd=0
 BuildCmd=
 
 [Unit25]
-FileName=..\TODO.txt
+FileName=config.c
 CompileCpp=0
-Folder=OTHER FILES
-Compile=0
-Link=0
+Folder=SRC-ELbot
+Compile=1
+Link=1
 Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
@@ -288,7 +288,16 @@ OverrideBuildCmd=0
 BuildCmd=
 
 [Unit24]
-FileName=..\custom.c
+FileName=..\TODO.txt
+Folder=OTHER FILES
+Compile=0
+Link=0
+Priority=1000
+OverrideBuildCmd=0
+BuildCmd=
+
+[Unit26]
+FileName=config.h
 CompileCpp=0
 Folder=SRC-ELbot
 Compile=1

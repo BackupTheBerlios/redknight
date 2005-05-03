@@ -4,8 +4,6 @@
 //Story definitions
 #define NO_STORIES 3
 
-#include "includes.h"
-
 extern int story;
 extern int story_pause[NO_STORIES];
 extern int story_time;

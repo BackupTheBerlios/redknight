@@ -1,3 +1,4 @@
+#include "includes.h"
 #include "stories.h"
 int story=-1;//Set him to read
 int story_pause[NO_STORIES]={7*1000, 4*1000, 7*1000};//Pause for 7 seconds

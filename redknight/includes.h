@@ -11,5 +11,7 @@
 #include "actors.h"
 #include "pathfinder.h"
 #include "elbot.h"
+#include "config.h"
 #include <unistd.h>
 extern char configdir[256];
+

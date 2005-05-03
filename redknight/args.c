@@ -1,28 +1,25 @@
 #include "args.h"
 #include "elbot.h"
 
-/*Macros*/
-//Make this a little easier on the eyes.
-//These are used inside the function, never for function use.
-//This way, we can easily clean up all the loose ends.
+/* Macros */
+// Make this a little easier on the eyes.
+// These are used inside the function, never for function use.
+// This way, we can easily clean up all the loose ends.
 #define INCREMENT_ARGS() *argv++; i++
 #define IS_ARG args=1
 
 int i=0;
-unsigned short int verbose=0;//Verbose mode
+unsigned short int verbose=0;     // Verbose mode
 
 
 int process_args(int argc, const char **argv)
 {
   int args=0;
     
-  //strcpy(inname,argv[0]);
   sprintf(inname,"%s.dat",argv[0]);
 
-  //Process args -->Someday, set this in a separate source file and set it up so
-  //that any and all parameters may be changed
   for (i=0; i < argc; *argv++) {
-    args=0;//Re-set this
+    args=0; // Re-set this
     if(!strcmp(*argv,"--help") || !strcmp(*argv,"-H")) {
       IS_ARG;
       printf("Usage: ELbot [arguments]\n\n");
@@ -59,19 +56,19 @@ int process_args(int argc, const char **argv)
     {
         IS_ARG;
         INCREMENT_ARGS();
-        strcpy(fname, *argv);//Copy next argument
+        strcpy(fname, *argv);     // Copy next argument
     }    
     if((!strcmp(*argv,"-v")) || (!strcmp(*argv,"--verbose")))
     {
         IS_ARG;
-        verbose=1;//Not set up yet
+        verbose=1;
     }
     if((!strcmp(*argv,"-f")) || (!strcmp(*argv,"--fortune")))
     {
         args = 2;
-        txt2bin("fortune");
-    }          
-    //End processing...advance counter and check if it's a real value
+        txt2bin(*(++argv));     // Translate the following argument
+    }
+    // End processing...advance counter and check if it's a real value
     if(args == 0 && i > 0)
     {
       printf("Unknown argument: %s", *argv);

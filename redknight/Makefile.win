@@ -1,18 +1,19 @@
 # Project: Red Knight
-# Makefile created by Dev-C++ 4.9.9.1
+# Makefile created by Dev-C++ 4.9.9.2
 
 CPP  = g++.exe
 CC   = gcc.exe
 WINDRES = windres.exe
 RES  = 
-OBJ  = ../../redknight/connection.o ../../redknight/elbot.o ../../redknight/initvars.o ../../redknight/log.o ../../redknight/args.o ../../redknight/actors.o ../../redknight/stories.o ../../redknight/local.o ../../redknight/fortune.o ../../redknight/pathfinder.o ../../redknight/asc.o ../../redknight/custom.o $(RES)
-LINKOBJ  = ../../redknight/connection.o ../../redknight/elbot.o ../../redknight/initvars.o ../../redknight/log.o ../../redknight/args.o ../../redknight/actors.o ../../redknight/stories.o ../../redknight/local.o ../../redknight/fortune.o ../../redknight/pathfinder.o ../../redknight/asc.o ../../redknight/custom.o $(RES)
+OBJ  = ../../redknight/connection.o ../../redknight/elbot.o ../../redknight/initvars.o ../../redknight/log.o ../../redknight/args.o ../../redknight/actors.o ../../redknight/stories.o ../../redknight/local.o ../../redknight/fortune.o ../../redknight/pathfinder.o ../../redknight/asc.o ../../redknight/config.o $(RES)
+LINKOBJ  = ../../redknight/connection.o ../../redknight/elbot.o ../../redknight/initvars.o ../../redknight/log.o ../../redknight/args.o ../../redknight/actors.o ../../redknight/stories.o ../../redknight/local.o ../../redknight/fortune.o ../../redknight/pathfinder.o ../../redknight/asc.o ../../redknight/config.o $(RES)
 LIBS =  -L"C:/Dev-Cpp/lib" -L"C:/Dev-Cpp/lib" -lSDL -lSDL_net   
 INCS =  -I"C:/Dev-Cpp/include" 
 CXXINCS =  -I"C:/Dev-Cpp/include/c++"  -I"C:/Dev-Cpp/include/c++/mingw32"  -I"C:/Dev-Cpp/include/c++/backward"  -I"C:/Dev-Cpp/include" 
 BIN  = ../redknight.exe
 CXXFLAGS = $(CXXINCS)   -w
 CFLAGS = $(INCS) -DWINDOWS -D_WIN32 -fexpensive-optimizations -O3   -w
+RM = rm -f
 
 .PHONY: all all-before all-after clean clean-custom
 
@@ -20,7 +21,7 @@ all: all-before ../redknight.exe all-after
 
 
 clean: clean-custom
-	rm -f $(OBJ) $(BIN)
+	${RM} $(OBJ) $(BIN)
 
 $(BIN): $(OBJ)
 	$(CC) $(LINKOBJ) -o "..\redknight.exe" $(LIBS)
@@ -58,5 +59,5 @@ $(BIN): $(OBJ)
 ../../redknight/asc.o: asc.c
 	$(CC) -c asc.c -o ../../redknight/asc.o $(CFLAGS)
 
-../../redknight/custom.o: ../custom.c
-	$(CC) -c ../custom.c -o ../../redknight/custom.o $(CFLAGS)
+../../redknight/config.o: config.c
+	$(CC) -c config.c -o ../../redknight/config.o $(CFLAGS)

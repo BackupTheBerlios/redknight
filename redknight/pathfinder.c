@@ -62,7 +62,7 @@ char map_file_name[256];
 unsigned short cur_map = -1;  // Don't know where we are until we know
 
 //Load what we need...
-int load_map(char * name)
+void load_map(char * name)
 {   
      map_header cur_map_header;
      char * mem_map_header=(char *)&cur_map_header;
@@ -113,7 +113,9 @@ int load_map(char * name)
 			pf_tile_map[i].z = height_map[i];
 	    }
 	}
-    return(check_map(name+7)); 
+	
+	examine_map(name+7);
+    return;
 }
 
 #define PF_DIFF(a, b) ((a > b) ? a - b : b - a)
@@ -377,12 +379,14 @@ int pf_is_tile_occupied(int x, int y)
 // Return if we can continue, or are busy
 void timed_pf_move(unsigned int mytime)
 {
+     if(bot_map.cur_map == -1) return;
+     
      if(((path_time + 2500) < mytime) && pf_follow_path == 1) {
          if(!pf_move()) log_info("Cannot move!");
          path_time = mytime;
          return;        
      }
-     else if(cur_map != 1337 && cur_map != -1 && ((path_time + 1000) < mytime) && pf_follow_path == 0) {
+     else if(bot_map.map[bot_map.cur_map].id != CONFIG_NULL && ((path_time + 1000) < mytime) && pf_follow_path == 0) {
           walk_to_base_map();
           path_time = mytime;
      }

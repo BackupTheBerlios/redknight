@@ -1,6 +1,16 @@
 #include "local.h"
 #include "includes.h"
 
+// Keep duplication down
+void hail_guildmember(char *name, char *guild, int gender)
+{
+        if(gender==FEMALE)send_raw_text ("Hail milady %s of %s!\0", name, guild);
+      	else if(gender==MALE)send_raw_text ("Hail m'lord %s of %s!\0", name, guild);
+      	else send_raw_text ("Hail %s of %s!\0", name, guild);
+}
+
+/* FIXME: Needs cleanup */
+
 // This reads the names of people that come into the bots view and responds.
 int check_if_we_should_hail (const char *data, int gender) {
   int i, j, len = strlen (data);
@@ -17,17 +27,25 @@ int check_if_we_should_hail (const char *data, int gender) {
   if (i < len)strncpy (guild, data+i+1, 5-1);
   log_info ("I see: %s\n", name);
   if (strcasecmp (name, boss_name) == 0) {
-  	if (hail_master == 1 || (hail_master == 2 && cur_map == 1337)) {
-  	    if(gender==FEMALE)send_raw_text("Hail %s, my mistress!\0", name);
-  		if(gender==MALE)send_raw_text("Hail %s, my master!\0", name);
-  		else send_raw_text("Hail %s, my master!\0", name);
+  	if (hail_master == 1 || (hail_master == 2 && bot_map.map[bot_map.cur_map].id == CONFIG_NULL)) {
+        hail_guildmember(name, guild, gender);
   		return 0;
    }
   }
   else {
   	if (strcasecmp(my_guild, guild)) { 
-		if (hail_everyone == 1 || (cur_map == 1337 && hail_everyone == 2)) {
-  			send_raw_text("%s! %s", name, greet_message);//Greeting, name, greeting message
+		if (hail_everyone == 1 || (bot_map.map[bot_map.cur_map].id == CONFIG_NULL && hail_everyone == 2)) {
+  			if(get_string(&A_guild, guild, strlen(guild)) != -1)
+            {
+                 hail_guildmember(name, guild, gender);
+                 return 0;
+            }
+  			if(get_string(&A_player, name, strlen(name)) != -1)
+            {
+                 hail_guildmember(name, guild, gender);
+                 return 0;
+            }  			
+            send_raw_text("%s! %s", name, greet_message);  //Greeting, name, greeting message
   			return 1;          //Kill them
 		}
 	}
@@ -40,10 +58,8 @@ int check_if_we_should_hail (const char *data, int gender) {
       /* player has the desired guild tag */
       strncpy (name, data, i > 40 ? 40-1 : i-1);
       strcpy (name+(i > 40 ? 40-1 : i-1), "\0");
-      if (hail_guild == 1 || (hail_guild == 2 && cur_map == 1337)) {
-      	if(gender==FEMALE)send_raw_text ("Hail milady %s of %s!\0", name, guild);
-      	else if(gender==MALE)send_raw_text ("Hail m'lord %s of %s!\0", name, guild);
-      	else send_raw_text ("Hail %s of %s!\0", name, guild);
+      if (hail_guild == 1 || (hail_guild == 2 && bot_map.map[bot_map.cur_map].id == CONFIG_NULL)) {
+        hail_guildmember(name, guild, gender);
       	return 0;
       }
     }

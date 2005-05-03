@@ -168,7 +168,9 @@ try_again:
   if (reclen <= 0) {
     log_error ("Disconnected by the server!\n");
     exit_connection (EXIT_ALL);
-    exit (1);
+    SDL_Delay (120000);      // Wait 2 minutes
+    // Call the main function again
+    init_bot();
   }
 
   msglen = *((short *) (msgbuf + startptr + 1));

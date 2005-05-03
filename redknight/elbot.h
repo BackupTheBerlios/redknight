@@ -15,7 +15,7 @@ extern char *ROOTDIR;
 
 extern int debug;
 extern int hail_master, hail_everyone, hail_guild, insult_enemy, debug;
-extern char my_name[], boss_name[], my_guild[], enemy_guild[], greet_message[],
+extern char my_name[], my_password[], boss_name[], my_guild[], enemy_guild[], greet_message[],
             insult_message[];
 extern char *fortune[], *quote[];
 /* check what sort of message comes in, and take action based on that */

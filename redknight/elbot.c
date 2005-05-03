@@ -32,6 +32,11 @@ char * ROOTDIR="/home/bremac/elbot/";    // Anyone actually want this?
 char *fortune[]={"fortune", NULL};
 char *quote[]={"quote", NULL};
 
+/*********************************************/
+/* TODO: FIX ALL THESE UGLY GLOBAL VARIABLES */
+/*********************************************/
+
+
 /* Version for the -v or --version option */
 int version_major=0, version_minor=3, patch_version=9;
 
@@ -45,7 +50,7 @@ char *hostname = "eternal-lands.solexine.fr";
 int port = 2000;
 
 /* Extern which must pass between all functions */
-char chat_name[40];
+// char chat_name[40];
 char fname[60] = "elbot.dat";
 char inname[60];
 long queue_len=0;
@@ -56,63 +61,9 @@ char name[40], guild[5];
 int yourself;
 
 /* Function Prototypes */
-void process_text_message(const char *data, int PM);
+void process_text_message(const char *msg, char *chat_name, int PM); 
 unsigned char logged_in;
 
-
-
-// admin.lst usage
-char admins[5*30];
-int admins_len = 0;
-// " <name> <name> ..."
-// (A space is appended to the front to make searches faster)
-// (tolower'd because case is insensitive, ie. CrusadingKNIGHT == CrUsAdInGkNiGhT)
-void load_admins()
-{
-     FILE *f = NULL;
-     char b;
-     int s = 0, i = 0;
-     
-	 if(!(f=open("admin.lst", 0))) return;	 
-	 admins[i++] = ' ';
-	 while((s=read(f, &b, 1))) admins[i++] = tolower(b);
-	 admins[i] = '\0';
-	 admins_len = i;
-     close(f);
-}
-
-// Usage :
-//         if(get_admins_string("CrusaDingKnIGHT", 15) != -1) printf("Pwn3d!1~!");
-//         (All strings are tolower'd)         
-int get_admins_string(char * in_name, int len)
-{
-     int i = 0, j = 0, k = 0;
-     if(len >= 30) return 0; //Too big to be a name
-     char name[31]=" ";
-     char lower_name[30];
-     
-     while(*in_name != '\0') {
-          lower_name[i++] = tolower(*in_name);
-          in_name++;
-     }
-     i = 0;          
-     strcat(name, tolower(lower_name));
-     
-     while(i < admins_len && admins[i] != '\0') {   
-          if(admins[i] == name[0]) {
-                j = i;
-                k = 0;
-                while(j < admins_len && k < len && admins[j] == name[k]) {
-                     j++;
-                     k++;
-                }
-                if(k == len) return i;
-          }
-          i++;
-     }
-     log_info("Couldn't Process %s, len %d", name, len);
-     return -1;
-}
 
 // this function takes a single string. The first word of the string is the name of the person to send the pm to.
 void send_pm (unsigned char *fmt, ...) {
@@ -152,11 +103,12 @@ void send_pm_enhanced(unsigned char *buffer, unsigned char *name)
 }
 
 
-void process_raw_text (const char *data) {
+void process_raw_text (const char *data, int data_len) {
   int len;
   int len2;
   int PM=0;
   //char name[40];
+  char chat_name[40];
   char *loc;
   char chat_seperator[5];
   
@@ -179,14 +131,14 @@ void process_raw_text (const char *data) {
   	
   	if(!strcmp(my_name, chat_name))return; // Don't talk to myself
   	if (debug >= DEBUG_HIGH) log_info ("I've got %s\n", chat_name);
-
-	if(PM!=0) process_text_message(data+10+len2+2,1);
+    
+	if(PM!=0) process_text_message(data+10+len2+2, chat_name, 1);
   }
 }
 
 
 //This functions figures out the text type, and responds accordingly
-void process_text_message(const char *msg, int PM) { 
+void process_text_message(const char *msg, char *chat_name, int PM) { 
     char text[1024];
     char *data = malloc(256);
     int i=0;    
@@ -198,6 +150,7 @@ void process_text_message(const char *msg, int PM) {
           data[i] = tolower(msg[i]);
           i++;
       }
+      data[i] = '\0';
       i = 0;
       
       if(debug>=2)log_info("PM: %s\n", data);
@@ -217,7 +170,7 @@ void process_text_message(const char *msg, int PM) {
            }
           if((!strncmp(data, "admin_help", 10))) {
                // Dump admin help info
-               if(get_admins_string(chat_name, strlen(chat_name)) != -1) {
+               if(get_string(&admin, chat_name, strlen(chat_name)) != -1) {
                     sprintf(text, "%s%s%s%s", "Admin - Commands:\n",
                          "\"!Echo <text>\" -> Send raw text <text>.\n",
                          "\"!Send <name> <text>\" -> PM <text> to <name>.\n",
@@ -251,7 +204,7 @@ void process_text_message(const char *msg, int PM) {
       // (Players won't know if they actidentally activate them)
       if(data[0] == '!') {
           data++;      // Skip '!'  
-          if(get_admins_string(chat_name, strlen(chat_name)) != -1) {                          
+          if(get_string(&admin, chat_name, strlen(chat_name)) != -1) {                          
                if((!strncmp(data,"echo",4)) && data[4] != '\0' && data[5] != '\0' && data[6] != '\0') {
                    strncpy(text, data+5, (strlen(data+4))-1);
                    strcpy(text+(strlen(data+4)-2), "\0"); 
@@ -263,7 +216,8 @@ void process_text_message(const char *msg, int PM) {
                    strcpy(text+(strlen(data+4)-2), "\0");
                    send_pm(text);
                    return;
-               }         
+               }
+                   
                if((!strncmp(data,"die",3))) {          
                    if (debug >= DEBUG_HIGH) log_info("The boss wants me to quit!\n");
 
@@ -276,16 +230,19 @@ void process_text_message(const char *msg, int PM) {
           }          
       }               
       // Don't understand:
-      strncpy(text,data,(strlen(data)-1));
-      strcpy(text+(strlen(data)-1), "\0");
-
-      send_pm("%s %s!?\0", chat_name, text);
-      send_pm("%s %s", chat_name, "PM me $help for help");
+      send_pm("%s %s", chat_name, "Thanks, your message has been passed to guild chat. For more commands, use $help.");
+      // Pass it to #gm, after trimming it
+      for(i = 0; data[i] != ']'; i++) {
+            text[i] = data[i];
+      }
+      text[i] = '\0';
+      send_raw_text("#gm %s: %s", chat_name, text);
     }
     else
     {
         // Local Chat - TODO
-    }        
+    } 
+    free(data);       
 }
 
  
@@ -302,7 +259,7 @@ int process_message (unsigned char* msg, int len) {
       break;
     case ADD_NEW_ACTOR:
       {
-            add_actor_from_server(msg+3, ((cur_map == 1337) ? 1 : 0));             // Kill monsters
+            add_actor_from_server(msg+3, ((bot_map.map[bot_map.cur_map].id == CONFIG_NULL) ? 1 : 0));             // Kill monsters
       }
 
       break;      
@@ -323,8 +280,8 @@ int process_message (unsigned char* msg, int len) {
 	  break;  
    case CHANGE_MAP:		
       {
-          cur_map = -1;
-          cur_map = load_map(msg+3);          
+          bot_map.cur_map = -1;
+          load_map(msg+3);
       }
       break;
     case LOG_IN_OK:
@@ -332,7 +289,7 @@ int process_message (unsigned char* msg, int len) {
       logged_in = msg[0];
       break;
     case RAW_TEXT:
-      process_raw_text (msg+3);
+      process_raw_text (msg+3, len-3);
       break;
     default:
       /* ignore */ ;
@@ -404,20 +361,26 @@ void do_event_loop () {
     // We rely on our actor existing so we can complete the following...
     timed_pf_move(time);
     
-    if(insult_enemy == 1 && (last_attack <= time) && (first_node != NULL))
-    {        
-         last_attack = time+2500;          
-         if((me=pf_get_our_actor()) != NULL) {
-              if(me->fighting != 1) {           
-                  if((first_node->time - 2000) <= time && !(first_node->k->fighting))
-                  {             
-                       pseudo_pf_find_path(first_node->k->x_tile_pos, 
+    if(insult_enemy == 1 && (last_attack <= time) && bot_map.map[bot_map.cur_map].id == CONFIG_NULL)
+    {
+         if(first_node != NULL)
+         {        
+              last_attack = time+2500;          
+              if((me=pf_get_our_actor()) != NULL) {
+                  if(me->fighting != 1) {           
+                       if((first_node->time - 2000) <= time && !(first_node->k->fighting))
+                       {             
+                            pseudo_pf_find_path(first_node->k->x_tile_pos, 
                                            first_node->k->y_tile_pos);
                                  
-                       if((first_node->time) <= time) attack(first_node->k->actor_id);
+                            if((first_node->time) <= time) attack(first_node->k->actor_id);
+                       }
                   }
               }
-         }
+         } else {
+              // Time to return to base...
+              pseudo_pf_find_path(bot_map.map[bot_map.cur_map].x, bot_map.map[bot_map.cur_map].y);
+         }  
     }
     SDL_Delay (100);
   }
@@ -484,32 +447,28 @@ int read_info (char *fname) {
 } 
 
 
-
-
-
-#ifdef WINDOWS
-int Main (int argc, const char ** argv) {
-#else
-int main (int argc, const char ** argv) {
+int init_bot()
+{  
+#ifdef LINUX
+  chdir(ROOTDIR);
 #endif
   int err, i;
   
   // Init
   for(i=0;i<max_actors;i++)
-			actors_list[i]=NULL;
+			actors_list[i]=NULL;   
 
-  if(!process_args(argc, argv))return 0;   
-
-#ifdef LINUX
-  chdir(ROOTDIR);
-#endif
   if (!read_info (fname)) {
     log_error ("Unable to read input file %s%s\n", ROOTDIR, "elbot.dat");
     exit (57);
   }
   
-  load_admins();
-
+  load_list(&admin, "admin.lst");
+  load_list(&A_player, "players.lst");
+  load_list(&A_guild, "guilds.lst");
+  
+  load_map_config("map.ini");
+  
   err = init_connection (hostname, port);
   if (err) {
     exit_connection (err);
@@ -527,6 +486,17 @@ int main (int argc, const char ** argv) {
   log_error ("Unable to log in as %s\n", my_name);
   
   return 0;
+}
+
+
+#ifdef WINDOWS
+int Main (int argc, const char ** argv) {
+#else
+int main (int argc, const char ** argv) {
+#endif
+
+  if(!process_args(argc, argv))return 0;
+  if(!init_bot()) return 0;
 }
 
 #ifdef WINDOWS

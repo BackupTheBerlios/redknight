@@ -260,14 +260,13 @@ int get_quote(char *file, char *name)
      #endif
      
      output(buffer);
-     //send_pm("%s %s", name, buffer);
 }
 
 #ifdef STANDALONE                     
-int main()
+int main(int argc, char *argv[])
 {
-      //if(txt2bin("fortune"))
-      get_quote("fortune.dat");
+    if(argv[0][1] == 'g') txt2bin(*argv[1]);
+    if(argv[0][1] == 'q') get_quote(*argv[1]);
 }   
 #endif
         

@@ -27,16 +27,6 @@ typedef struct
 	int count;
 } PF_OPEN_LIST;
 
-typedef struct
-{
-     int x;
-     int y; 
-     int id;
-} ENTRY_MAP;
-
-extern ENTRY_MAP bot_path[4];
-extern unsigned short cur_map;
-
 extern PF_TILE *pf_tile_map;
 extern PF_TILE *pf_dst_tile;
 extern int pf_follow_path;

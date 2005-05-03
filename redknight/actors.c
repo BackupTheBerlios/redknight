@@ -26,8 +26,11 @@ struct EquipStrings {
 };
 
 struct kill_queue *first_node = NULL, *last_node = NULL;
-/*Prototypes*/
+/* Prototypes */
+
+#ifdef DETECT_EQUIP
 void process_equipment(int equipment_part, Uint8 equipment_id, struct EquipStrings *E);
+#endif
 
 actor *actors_list[1000];
 int max_actors = 0;
@@ -74,7 +77,7 @@ void add_actor_from_server(char * in_data, int kill)
     }
     if(kill == 1) {
         new_node = calloc(sizeof(struct kill_queue), 1);
-        new_node->time = SDL_GetTicks() + 10000;
+        new_node->time = SDL_GetTicks() + 5000;      // Though this will only chase newbies ...
         new_node->k = actors_list[i];
         actors_list[i]->k = new_node;
         if(first_node == NULL) {
@@ -198,9 +201,13 @@ void check_actor_equip(char * in_data)
     int gender=0;//NULL until set 
     int this_actor_id=*((short *)(in_data));
     int kill = 0;
-	Uint8 weapon, actor_type, skin, hair, shirt, pants, boots, frame, cape, head;
+    Uint8 actor_type;
+    
+    #ifdef DETECT_EQUIP
+	Uint8 weapon, skin, hair, shirt, pants, boots, frame, cape, head;
 	Uint8 shield, helmet;
     struct EquipStrings e;
+    #endif
 
 	actor_type=*((short *)(in_data+10));
 	if(((actor_type % 2 ==0) && actor_type < 5) || (((actor_type-1) % 2 ==0) && (actor_type-1) < 41) && actor_type > 36)gender=FEMALE;
@@ -211,6 +218,9 @@ void check_actor_equip(char * in_data)
     }
    	if(this_actor_id != yourself)kill = check_if_we_should_hail (((char *) (in_data+28)), gender);
    	else kill = 0;
+   	
+   	// Keep the size down for some versions
+   	#ifdef DETECT_EQUIP
     skin=*(in_data+12);
 	hair=*(in_data+13);
 	shirt=*(in_data+14);
@@ -222,9 +232,12 @@ void check_actor_equip(char * in_data)
        if(hail_everyone == 1)send_raw_text("%s, remove your weapons before entering my home!", name);
 	cape=*(in_data+20);
 	helmet=*(in_data+21);
+	#endif
+	
 	//Memorize equipment
 	if(this_actor_id != yourself && strcasecmp(my_guild, guild) && strcasecmp(name, boss_name) && name[0] != 3)
 	{
+        #ifdef DETECT_EQUIP             
         if(hail_master == 1) {
             process_equipment(KIND_OF_WEAPON, weapon, &e);
             process_equipment(KIND_OF_SHIELD, shield, &e);
@@ -237,6 +250,7 @@ void check_actor_equip(char * in_data)
 	        send_pm("%s Leg Armor: %s, Body Armor: %s and Boots: %s", boss_name,
             e.legarmor, e.bodyarmor, e.Boots);
         }
+        #endif
      }
      add_actor_from_server(in_data, ((insult_enemy ==1) ? kill : 0));    
 }
@@ -245,23 +259,24 @@ void check_actor_equip(char * in_data)
 void walk_to_base_map()
 {
      actor *me;
-          
-     if(pf_follow_path == 1 || pf_follow_path == 2 || cur_map == 1337 || cur_map == -1) return;   
+     
+     if(bot_map.cur_map == -1) return;     
+     if(pf_follow_path == 1 || pf_follow_path == 2 || bot_map.map[bot_map.cur_map].id == CONFIG_NULL) return;   
                        // Already moving/home/nowhere
      else if((me=pf_get_our_actor())) {
-          if(me->x_tile_pos < bot_path[cur_map].x+5 && 
-             me->x_tile_pos > bot_path[cur_map].x-5 &&
-             me->y_tile_pos < bot_path[cur_map].y+5 && 
-             me->y_tile_pos > bot_path[cur_map].y-5) {
-                 use_object(bot_path[cur_map].id);  // We're here, enter
+          if(me->x_tile_pos < bot_map.map[bot_map.cur_map].x+5 && 
+             me->x_tile_pos > bot_map.map[bot_map.cur_map].x-5 &&
+             me->y_tile_pos < bot_map.map[bot_map.cur_map].y+5 && 
+             me->y_tile_pos > bot_map.map[bot_map.cur_map].y-5) {
+                 use_object(bot_map.map[bot_map.cur_map].id);  // We're here, enter
                  return;
              }
           else {
                pf_follow_path = 2;
-               if(!(pseudo_pf_find_path(bot_path[cur_map].x, bot_path[cur_map].y)))
+               if(!(pseudo_pf_find_path(bot_map.map[bot_map.cur_map].x, bot_map.map[bot_map.cur_map].y)))
                     log_info("Cannot Move!\n");
                                          // ^- Go there
-               if(debug >= DEBUG_MEDIUM) log_info("Moving %dx%d\n", bot_path[cur_map].x, bot_path[cur_map].y);
+               if(debug >= DEBUG_MEDIUM) log_info("Moving %dx%d\n", bot_map.map[bot_map.cur_map].x,bot_map.map[bot_map.cur_map].y);
                return;
           }
      }
@@ -338,6 +353,7 @@ void use_object(int id)
      send_to_server(str,9);
 }          
 
+#ifdef DETECT_EQUIP
 void process_equipment(int equipment_part, Uint8 equipment_id, struct EquipStrings *E)
 {
     if(equipment_part == KIND_OF_WEAPON)
@@ -579,4 +595,5 @@ void process_equipment(int equipment_part, Uint8 equipment_id, struct EquipStrin
                 return;
         }    
     }
-}   
+}
+#endif   
