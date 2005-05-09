@@ -379,7 +379,10 @@ void do_event_loop () {
               }
          } else {
               // Time to return to base...
-              pseudo_pf_find_path(bot_map.map[bot_map.cur_map].x, bot_map.map[bot_map.cur_map].y);
+              if((me=pf_get_our_actor()) != NULL) {
+                  if(me->x_tile_pos != bot_map.map[bot_map.cur_map].x && me->y_tile_pos != bot_map.map[bot_map.cur_map].y)
+                      pseudo_pf_find_path(bot_map.map[bot_map.cur_map].x, bot_map.map[bot_map.cur_map].y);                    
+              }
          }  
     }
     SDL_Delay (100);

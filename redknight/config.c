@@ -161,12 +161,14 @@ int get_string(struct CONFIG_LIST *list, char * in_name, int len)
           lower_name[i++] = tolower(*in_name);
           in_name++;
      }
+     lower_name[i] = '\0';
      
      strcpy(name, tolower(lower_name));
      cur = list->list;
           
      for(i = 0; i < list->l && cur; i++) {
           if(!strcmp(cur->data, name)) return i;
+          printf("%s - %s\n", cur->data, name);
           cur = cur->next;
      }
 
