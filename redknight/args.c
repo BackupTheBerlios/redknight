@@ -1,84 +1,60 @@
 #include "args.h"
 #include "elbot.h"
 
-/* Macros */
-// Make this a little easier on the eyes.
-// These are used inside the function, never for function use.
-// This way, we can easily clean up all the loose ends.
-#define INCREMENT_ARGS() *argv++; i++
-#define IS_ARG args=1
 
-int i=0;
 unsigned short int verbose=0;     // Verbose mode
 
-
-int process_args(int argc, const char **argv)
-{
-  int args=0;
-    
-  sprintf(inname,"%s.dat",argv[0]);
-
-  for (i=0; i < argc; *argv++) {
-    args=0; // Re-set this
-    if(!strcmp(*argv,"--help") || !strcmp(*argv,"-H")) {
-      IS_ARG;
-      printf("Usage: ELbot [arguments]\n\n");
-      printf("  -D --debug\t\tSet the debug level to the next argument.\n\t\t\t Possibilities are: 0 (None), 1, 2, 3(High).\n");
-      printf("  -I --input [filename]\tSet the input file to [filename]\n");
-      printf("  -H --help\t\tDisplay this information\n");
-      printf("  -V --version\t\tDisplay version information\n");
-      printf("  -v --verbose\t\tDisplay the info to log whenever log_data()\n\t\t\t and/or log_error() are called.\n");
-      exit (0);
-    }
-    if(!strcmp(*argv,"-V") || !strcmp(*argv,"--version"))
-    {
-      printf("Version: ELbot %d.%d-%d\n", version_major, version_minor, patch_version);
-      exit(0);
-    }
-    if((!strcmp(*argv,"--debug")) || (!strcmp(*argv,"-D")))
-    {
-        IS_ARG;
-        INCREMENT_ARGS();
-        switch(**argv) {
-            case '0': debug=DEBUG_NONE;
-                break;
-            case '1': debug=DEBUG_LOW;
-                break;
-            case '2': debug=DEBUG_MEDIUM;
-                break;
-            case '3': debug=DEBUG_HIGH;
-                break;
-            default: printf("Unknown debug level: %s.\n Please use one of the following levels:0, 1, 2 or 3\n", *argv);
-                exit(0);
-        }    
-    }          
-    if((!strcmp(*argv,"--input")) || (!strcmp(*argv,"-I")))
-    {
-        IS_ARG;
-        INCREMENT_ARGS();
-        strcpy(fname, *argv);     // Copy next argument
-    }    
-    if((!strcmp(*argv,"-v")) || (!strcmp(*argv,"--verbose")))
-    {
-        IS_ARG;
-        verbose=1;
-    }
-    if((!strcmp(*argv,"-f")) || (!strcmp(*argv,"--fortune")))
-    {
-        args = 2;
-        txt2bin(*(++argv));     // Translate the following argument
-    }
-    // End processing...advance counter and check if it's a real value
-    if(args == 0 && i > 0)
-    {
-      printf("Unknown argument: %s", *argv);
-      return 0;
-    }
-    if(args == 2)return 0;
-    //Increment i...VERY IMPORTANT
-    i++;    
-  }
-  //End Arg Processing
-  return 1;
-}  
+void getargs(int argc, char **argv)
+{    
+     for(*argv++; *argv != 0; *argv++) {
+           if(*argv[0] == '-')
+           { 
+                 if(!strcmp(*argv, "-i")) // Set Input
+                 {
+                       strcpy(fname, *(++argv));
+                       continue;
+                 }
+                 if(!strcmp(*argv, "-d")) // Debug
+                 {
+                       debug = atoi(*(++argv));
+                       if(debug > 3) debug = 3;
+                       if(debug < 0) debug = 0;
+                       continue;
+                 }
+                 if(!strcmp(*argv, "-v")) // Verbose
+                 {
+                       verbose = 1;
+                       continue;
+                 }
+                 if(!strcmp(*argv, "-f")) // Compile Fortune
+                 {
+                       txt2bin(*(++argv));
+                       continue;
+                 }
+                 if(!strcmp(*argv, "-V") || !strcmp(*argv, "--version")) // Print Version Info
+                 {
+                       printf("Version: ELbot %d.%d-%d\n", version_major, version_minor, patch_version);
+                       exit(0);
+                 }
+                 if(!strcmp(*argv, "-h") || !strcmp(*argv, "--help")) // Print Help Info
+                 {
+                       printf("Usage: ELbot [arguments]\n\n");
+                       printf("  -d \t\t\tSet the debug level to the next argument.\n\t\t\t Possibilities are: 0 (None), 1, 2, 3(High).\n");
+                       printf("  -i [filename]\t\tSet the input file to [filename]\n");
+                       printf("  -h --help\t\tDisplay this information\n");
+                       printf("  -f [filename]\t\tCompile the fortune file from [filename]\n");
+                       printf("  -V --version\t\tDisplay version information\n");
+                       printf("  -v \t\t\tDisplay the info to log whenever log_data()\n\t\t\t and/or log_error() are called.\n");
+                       exit (0);
+                 }
+           } 
+           else
+           { 
+                 printf("Unknown argument: %s\nUse redknight --help for more details", *argv);    // This shouldn't happen
+                 exit(0);
+           }
+     }
+     printf("Returning ... ");
+     return 1;
+}          
 

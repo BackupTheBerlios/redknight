@@ -9,7 +9,6 @@
 #include "client_serv.h"
 #include "initvars.h"
 #include "actors.h"
-#include "pathfinder.h"
 #include "elbot.h"
 #include "config.h"
 #include <unistd.h>

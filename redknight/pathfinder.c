@@ -87,7 +87,7 @@ void load_map(char * name)
 	 tile_map_size_y=cur_map_header.tile_map_y_len;
 	 
 	 //allocate memory for the tile map
-	 tile_map=(char *)calloc(tile_map_size_x*tile_map_size_y, 1);
+	 tile_map=(char *)malloc(tile_map_size_x*tile_map_size_y);
 	 
  	 //read the tiles map
 	 fread(tile_map, 1, tile_map_size_x*tile_map_size_y, f);
@@ -95,7 +95,7 @@ void load_map(char * name)
 	 tile_map = NULL;   // Don't need it...
 
      //allocates the memory for the heights
-	 height_map=(char *)calloc(tile_map_size_x*tile_map_size_y*6*6, 1);
+	 height_map=(char *)malloc(tile_map_size_x*tile_map_size_y*6*6);
 
 	 //read the heights map
 	 fread(height_map, 1, tile_map_size_x*tile_map_size_y*6*6, f);
@@ -118,7 +118,6 @@ void load_map(char * name)
     return;
 }
 
-#define PF_DIFF(a, b) ((a > b) ? a - b : b - a)
 #define PF_HEUR(a, b) ((PF_DIFF(a->x, b->x) + PF_DIFF(a->y, b->y)) * 10)
 
 PF_TILE *pf_get_tile(int x, int y)
@@ -377,23 +376,25 @@ int pf_is_tile_occupied(int x, int y)
 }
 
 // Return if we can continue, or are busy
-void timed_pf_move(unsigned int mytime)
+int timed_pf_move(Uint32 time)
 {
-     if(bot_map.cur_map == -1) return;
+     if(bot_map.cur_map == -1) return 1;
      
-     if(((path_time + 2500) < mytime) && pf_follow_path == 1) {
+     if(pf_follow_path == 1) {
          if(!pf_move()) log_info("Cannot move!");
-         path_time = mytime;
-         return;        
+         return 1;        
      }
-     else if(bot_map.map[bot_map.cur_map].id != CONFIG_NULL && ((path_time + 1000) < mytime) && pf_follow_path == 0) {
+     else if(bot_map.map[bot_map.cur_map].id != CONFIG_NULL && pf_follow_path == 0) {
           walk_to_base_map();
-          path_time = mytime;
      }
-     return;
+     return 1;
 } 
 
 // Emulate click functionality, so we don't stick
+/*********************************************/
+/* FIXME: This sometimes gives us an invalid */
+/*        position. This should be fixed.    */
+/*********************************************/
 int pseudo_pf_find_path(int x, int y)
 { 
     int ux = x, uy = y;
@@ -402,8 +403,8 @@ int pseudo_pf_find_path(int x, int y)
 		return 1;
 	}
 	
-	for (x = ux-3; x <= ux+3 ; x++) {
-		for (y = uy-3; y <= uy+3; y++) {
+	for (x = ux-4; x <= ux+4 ; x++) {
+		for (y = uy-4; y <= uy+4; y++) {
 			if (x == ux && y == uy) {
 				continue;
 			}

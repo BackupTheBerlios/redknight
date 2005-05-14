@@ -1,20 +1,28 @@
-// Includes
+// INCLUDES
 #include <stdio.h>
 #include <math.h>
 #include <string.h>
 #include "includes.h"
-// Definitions
-#define MALE 1  
-#define FEMALE 2
-// Globals
-extern char name[40];
+#include "pathfinder.h"
+
+// MACRO DEFINITIONS
+#define MALE        1  
+#define FEMALE      2
+
+// EXTERN GLOBAL VARIABLES
+/*extern char name[40];
 extern char guild[5];
 extern char my_guild[5];
 extern char boss_name[40];
 extern long queue_len;
 extern int hail_everyone;
 extern int hail_master;
+*/
+// GLOBAL VARIABLES
+actor *actors_list[1000];
+int max_actors = 0;
 
+// STRUCTURE DEFINITIONS
 struct EquipStrings {
        char *Weapon;
        char *bodyarmor;
@@ -25,18 +33,15 @@ struct EquipStrings {
        char *Shield;
 };
 
+// PROTOTYPES
 struct kill_queue *first_node = NULL, *last_node = NULL;
-/* Prototypes */
-
 #ifdef DETECT_EQUIP
 void process_equipment(int equipment_part, Uint8 equipment_id, struct EquipStrings *E);
 #endif
 
-actor *actors_list[1000];
-int max_actors = 0;
 
 void add_actor_from_server(char * in_data, int kill)
-{     
+{      
     int i;
     int this_actor_id = *((short *)(in_data));
     struct kill_queue *new_node;
@@ -45,7 +50,7 @@ void add_actor_from_server(char * in_data, int kill)
              
     for(i=0; i < max_actors+1; i++) {
              if(!actors_list[i]) {
-                  actors_list[i] = calloc(1, sizeof(actor));
+                  actors_list[i] = malloc(sizeof(actor));
                   break;
              }
              else if(actors_list[i]->actor_id == this_actor_id) {
@@ -76,7 +81,7 @@ void add_actor_from_server(char * in_data, int kill)
 	    my_strncp(actors_list[i]->actor_name,&in_data[28],30); //<--Enhanced
     }
     if(kill == 1) {
-        new_node = calloc(sizeof(struct kill_queue), 1);
+        new_node = malloc(sizeof(struct kill_queue));
         new_node->time = SDL_GetTicks() + 5000;      // Though this will only chase newbies ...
         new_node->k = actors_list[i];
         actors_list[i]->k = new_node;
@@ -93,7 +98,11 @@ void add_actor_from_server(char * in_data, int kill)
             new_node->next = NULL;
             last_node = new_node;
         }
-    }    
+    }
+    else
+    {
+        actors_list[i]->k = NULL;
+    }
     max_actors++;
     if(debug >= DEBUG_LOW)log_info("Finished adding actor.\n");
 }
@@ -116,7 +125,7 @@ void destroy_all_actors()
 	                 actors_list[i]->actor_type=NULL;
 	                 actors_list[i]->fighting=NULL;
 	                 
-                     if(actors_list[i]->k) {
+                     if(actors_list[i]->k != NULL) {
                           tofree = actors_list[i]->k;
                           tofree->prev=NULL;
                           tofree->next=NULL;
@@ -152,7 +161,7 @@ void destroy_actor(int actor_id)
 	                        actors_list[i]->actor_type=NULL;
                             actors_list[i]->fighting=NULL;                              
                             
-                            if(actors_list[i]->k) {
+                            if(actors_list[i]->k != NULL) {
                                   tofree = actors_list[i]->k;
                                   if(tofree->prev && tofree->next) {
                                        tofree->prev->next = tofree->next;

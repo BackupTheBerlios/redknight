@@ -21,14 +21,18 @@
 #include <windows.h>
 #endif
 
-#include "includes.h"
 #include <stdarg.h>
+
+#include "includes.h"
+#include "pathfinder.h"
+
 #include "connection.h"
 #include "log.h"
 #include "local.h"
 #include "stories.h"
+#include "items.h"
 
-char * ROOTDIR="/home/bremac/elbot/";    // Anyone actually want this?
+char * ROOTDIR="/usr/opt/redknight";    // Anyone actually want this?
 char *fortune[]={"fortune", NULL};
 char *quote[]={"quote", NULL};
 
@@ -171,10 +175,16 @@ void process_text_message(const char *msg, char *chat_name, int PM) {
           if((!strncmp(data, "admin_help", 10))) {
                // Dump admin help info
                if(get_string(&admin, chat_name, strlen(chat_name)) != -1) {
-                    sprintf(text, "%s%s%s%s", "Admin - Commands:\n",
+                    sprintf(text, "%s%s%s%s%s%s%s%s%s%s", "Admin - Commands:\n",
                          "\"!Echo <text>\" -> Send raw text <text>.\n",
                          "\"!Send <name> <text>\" -> PM <text> to <name>.\n",
-                         "\"!Die -> Log off.\n");
+                         "\"!Die -> Log off.\n",
+                         "\"!gadd <name> -> Protect the guild <name>.\n",
+                         "\"!gdel <name> -> Unprotect the guild <name>.\n",
+                         "\"!glst -> List protected guilds.\n",
+                         "\"!padd <name> -> Protect the player <name>.\n",
+                         "\"!pdel <name> -> Unprotect the player <name>.\n",
+                         "\"!plst -> List protected players.\n");
                }
                else strcpy(text, "R0fl, slave; U r not ~ admin!!`");
                send_pm_enhanced(text, chat_name);
@@ -216,18 +226,86 @@ void process_text_message(const char *msg, char *chat_name, int PM) {
                    strcpy(text+(strlen(data+4)-2), "\0");
                    send_pm(text);
                    return;
-               }
-                   
+               }                   
                if((!strncmp(data,"die",3))) {          
                    if (debug >= DEBUG_HIGH) log_info("The boss wants me to quit!\n");
 
                    send_pm ("%s Yes sir, %s\0", chat_name, chat_name);
                    send_raw_text ("%s\0", quit_message);
+                   save_list(&A_player, "players.lst");
+                   save_list(&A_guild, "guilds.lst");
                    exit_connection (EXIT_ALL);
                    exit (0);
                    return;
                }
-          }          
+               if((!strncmp(data,"save",4))) {          
+                   send_pm ("%s Yes sir, %s\0", chat_name, chat_name);
+                   save_list(&A_player, "players.lst");
+                   save_list(&A_guild, "guilds.lst");
+                   return;
+               }
+               if((!strncmp(data,"padd",4))) {
+                   for(i = 0; data[i+5] != ']'; i++) {
+                         text[i] = data[i+5];
+                   }
+                   text[i] = '\0';
+                   if(add_string(&A_player, text, strlen(text)) == 0)
+                   {
+                         send_pm("%s List is already full. Maybe you should remove some people?", chat_name);
+                   }
+                   return;
+               }
+               if((!strncmp(data,"pdel",4))) {
+                   for(i = 0; data[i+5] != ']'; i++) {
+                         text[i] = data[i+5];
+                   }
+                   text[i] = '\0';
+                   if(remove_string(&A_player, text, strlen(text)) == -1)
+                   {
+                         send_pm("%s Name could not be removed. Maybe you should check your spelling?", chat_name);
+                   }
+                   return;
+               }
+               if((!strncmp(data,"plst",4))) {
+                   for(i = 0; data[i+5] != ']'; i++) {
+                         text[i] = data[i+5];
+                   }
+                   text[i] = '\0';
+                   text[i] = '\0';
+                   send_pm("%s Players protected: %s", chat_name, print_list(&A_player));
+                   return;
+               }
+               if((!strncmp(data,"gadd",4))) {
+                   for(i = 0; data[i+5] != ']'; i++) {
+                         text[i] = data[i+5];
+                   }
+                   text[i] = '\0';
+                   if(add_string(&A_guild, text, strlen(text)) == 0)
+                   {
+                         send_pm("%s List is already full. Maybe you should remove some people?", chat_name);
+                   }
+                   return;
+               }
+               if((!strncmp(data,"gdel",4))) {
+                   for(i = 0; data[i+5] != ']'; i++) {
+                         text[i] = data[i+5];
+                   }
+                   text[i] = '\0';
+                   if(remove_string(&A_guild, text, strlen(text)) == -1)
+                   {
+                         send_pm("%s Name could not be removed. Maybe you should check your spelling?", chat_name);
+                   }
+                   return;
+               }
+               if((!strncmp(data,"glst",4))) {
+                   for(i = 0; data[i+5] != ']'; i++) {
+                         text[i] = data[i+5];
+                   }
+                   text[i] = '\0';
+                   send_pm("%s Guilds protected: %s", chat_name, print_list(&A_guild));
+                   return;
+               }
+           }          
       }               
       // Don't understand:
       send_pm("%s %s", chat_name, "Thanks, your message has been passed to guild chat. For more commands, use $help.");
@@ -241,6 +319,7 @@ void process_text_message(const char *msg, char *chat_name, int PM) {
     else
     {
         // Local Chat - TODO
+        data++;  // Skip color
     } 
     free(data);       
 }
@@ -249,45 +328,70 @@ void process_text_message(const char *msg, char *chat_name, int PM) {
 // checks what kind of message was recieved...
 int process_message (unsigned char* msg, int len) {
   switch (msg[0]) {
-    case ADD_NEW_ENHANCED_ACTOR:
-      {                      
-          check_actor_equip(msg+3);
-      }    
-      break;      
+  // Actor Stuff
+    case ADD_NEW_ENHANCED_ACTOR:                   
+        check_actor_equip(msg+3); 
+        break;      
     case ADD_ACTOR_COMMAND:
-         process_command(*((short *)(msg+3)),msg[5]);
-      break;
+        process_command(*((short *)(msg+3)),msg[5]);
+        break;
     case ADD_NEW_ACTOR:
-      {
-            add_actor_from_server(msg+3, ((bot_map.map[bot_map.cur_map].id == CONFIG_NULL) ? 1 : 0));             // Kill monsters
-      }
-
-      break;      
+        add_actor_from_server(msg+3, ((bot_map.map[bot_map.cur_map].id == CONFIG_NULL) ? 1 : 0));             // Kill monsters
+        break;      
     case REMOVE_ACTOR:
-		{
-			destroy_actor(*((short *)(msg+3)));
-		}
+		destroy_actor(*((Uint16 *)(msg+3)));
 		break;
 	case KILL_ALL_ACTORS:
-		{
-			destroy_all_actors();
-		}
+		destroy_all_actors();
 		break;  
     case YOU_ARE:
-      {
 		yourself=*((short *)(msg+3));
-	  }
-	  break;  
+	    break;
+  // Inventory Stuff
+   	case HERE_YOUR_INVENTORY:
+		get_inventory_from_server(msg+3);
+        break;
+	case GET_NEW_INVENTORY_ITEM:
+		get_new_inventory_item_from_server(msg+3);
+	    break;
+	case REMOVE_ITEM_FROM_INVENTORY:
+		remove_inventory_item(msg[3]);
+	    break;
+ // Bag Stuff
+	case GET_NEW_BAG:
+         put_bag_on_ground(SDL_SwapLE16(*((Uint16 *)(msg+3))), SDL_SwapLE16(*((Uint16 *)(msg+5))),*((Uint8 *)(msg+7)));
+         break;
+	case GET_BAGS_LIST:
+         add_bag_list(&msg[3]);
+		 break;
+	case GET_NEW_GROUND_ITEM:
+		 get_bag_item(msg+3);
+		 break;
+    case HERE_YOUR_GROUND_ITEMS:
+		 get_bags_items_list(&msg[3]);
+		 break;
+    case CLOSE_BAG:
+		 // Destroy Bag Contents
+		 break;
+    case REMOVE_ITEM_FROM_GROUND:
+		 remove_item_from_ground(msg[3]);
+		 break;
+	case DESTROY_BAG:
+		 remove_bag(msg[3]);
+		 break;
+ // Map Stuff  
    case CHANGE_MAP:		
       {
           bot_map.cur_map = -1;
           load_map(msg+3);
       }
       break;
+  // Login stuff
     case LOG_IN_OK:
     case LOG_IN_NOT_OK:    
       logged_in = msg[0];
       break;
+  // Text Stuff
     case RAW_TEXT:
       process_raw_text (msg+3, len-3);
       break;
@@ -338,19 +442,88 @@ int login (const char *name, const char *passwd) {
 }
 
 
+
+struct TIMER *heartbeatptr, *storyptr, *guildmapptr, *pf_moveptr;
+
+// Main Timer wrappers
+Uint32 last_heart_beat;
+Uint8 heartbeat = HEART_BEAT;
+
+int heartbeat_timer(Uint32 time)
+{
+     send_to_server (&heartbeat, 1);
+     last_heart_beat = time;
+     return 1;
+}
+
+int story_timer(Uint32 time)
+{
+     if(story == -1 || story_time > time) return 1;
+     read_story();
+     return 1;
+}
+
+int guildmap_timer(Uint32 time)
+{
+     actor *me = NULL;
+     int i;
+             
+     // Are we on a bag ? 
+     if((me = pf_get_our_actor()) != NULL) {
+          for(i = 0; i < no_bags; i++) {
+               if(PF_DIFF(me->x_tile_pos, bags_list[i].x) == 0 && PF_DIFF(me->y_tile_pos, bags_list[i].y) == 0)
+               {
+                     open_bag(i);
+                     return 1;
+               }
+          }
+     }
+     if(insult_enemy == 1 && bot_map.map[bot_map.cur_map].id == CONFIG_NULL)
+     {
+         if(first_node != NULL)
+         {        
+              if((me=pf_get_our_actor()) != NULL) {
+                  if(me->fighting != 1) {
+                       if((first_node->time - 2000) <= time && !(first_node->k->fighting))
+                       {             
+                            pseudo_pf_find_path(first_node->k->x_tile_pos, 
+                                           first_node->k->y_tile_pos);
+                                 
+                            if((first_node->time) <= time) attack(first_node->k->actor_id);
+                       }
+                  }
+              }
+         } else {
+              // Time to return to base...
+              if((me = pf_get_our_actor()) != NULL) {
+                  if(me->x_tile_pos != bot_map.map[bot_map.cur_map].x && me->y_tile_pos != bot_map.map[bot_map.cur_map].y)
+                      pseudo_pf_find_path(bot_map.map[bot_map.cur_map].x, bot_map.map[bot_map.cur_map].y);                    
+              }
+         }                       
+     }
+     return 1;
+}
+     
+     
+
 void do_event_loop () {
-  unsigned int last_heart_beat = SDL_GetTicks (), time;
+/*  unsigned int last_heart_beat = SDL_GetTicks (), time;
   unsigned char heartbeat = HEART_BEAT;
-  actor *me = NULL;
+  actor *me = NULL; */
+  Uint32 time;
 
   while (1) {
     get_server_message ();
     
     // Normal Timers
     time = SDL_GetTicks ();
+    
+    timer_loop(time);
+    
+    /*
     if (last_heart_beat + 25 * 1000 < time) {
-      /* another 25 seconds have passed.
-       * let the server know we're still there before the Grue eats us... */
+      // another 25 seconds have passed.
+      // let the server know we're still there before the Grue eats us...
       send_to_server (&heartbeat, 1);
       last_heart_beat = time;
     }    
@@ -385,6 +558,7 @@ void do_event_loop () {
               }
          }  
     }
+    */
     SDL_Delay (100);
   }
 }
@@ -401,6 +575,8 @@ int read_info (char *fname) {
       return 0;
   }
 
+  // TODO: RE-WRITE THIS TO USE A FUNCTION IN CONFIG.C
+  // INIT_GLOBALS( .. ) ISN'T WHAT WE'RE LOOKING FOR
   int k;
   k = init_globals(fp, "login password server_port guild admin quit_message greet_message debug hail_master hail_everyone hail_guild insult_enemy enemy_guild insult_message public_greeting1 public_greeting2 public_greeting3", "ssissssiiiiisssss", my_name, my_password, &port, my_guild, boss_name, quit_message, greet_message, &intern_debug, &hail_master, &hail_everyone, &hail_guild, &insult_enemy, enemy_guild, insult_message, pubgreet1, pubgreet2, pubgreet3);
 
@@ -466,11 +642,19 @@ int init_bot()
     exit (57);
   }
   
+  // Load Configuration Lists
   load_list(&admin, "admin.lst");
   load_list(&A_player, "players.lst");
   load_list(&A_guild, "guilds.lst");
   
+  // Load the map configuration
   load_map_config("map.ini");
+  
+  // Create the timers
+  heartbeatptr = add_timer(0, 25000, heartbeat_timer);
+  storyptr = add_timer(0, 1000, story_timer);
+  guildmapptr = add_timer(0, 2500, guildmap_timer);
+  pf_moveptr = add_timer(0, 2500, timed_pf_move);
   
   err = init_connection (hostname, port);
   if (err) {
@@ -498,7 +682,7 @@ int Main (int argc, const char ** argv) {
 int main (int argc, const char ** argv) {
 #endif
 
-  if(!process_args(argc, argv))return 0;
+  if(!getargs(argc, argv)) return 0;
   if(!init_bot()) return 0;
 }
 

@@ -30,6 +30,7 @@ typedef struct
 extern PF_TILE *pf_tile_map;
 extern PF_TILE *pf_dst_tile;
 extern int pf_follow_path;
+extern int tile_map_size_x, tile_map_size_y;
 
 PF_TILE *pf_get_tile(int x, int y);
 PF_TILE *pf_get_next_open_tile();
@@ -39,5 +40,8 @@ void pf_destroy_path();
 actor *pf_get_our_actor();
 int pf_move();
 int pf_is_tile_occupied(int x, int y);
+int timed_pf_move();
+
+#define PF_DIFF(a, b) ((a > b) ? a - b : b - a)
 
 #endif /* __PATHFINDER_H__ */

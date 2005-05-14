@@ -1,6 +1,6 @@
 #include "includes.h"
 
-// Navigation
+// GLOBAL VARIABLES
 struct BOT_WORLD bot_map = {
      {}, -1, 0
 };
@@ -27,6 +27,7 @@ int load_map_config(char *file)
     /*****************************/
 
     while (fgets(line, 512, f)) {
+          if(line[0] == '#') continue; // Comment line
           for(i = 0; line[i] != ' ' && line[i] != '\n' && line[i] != '\0'; i++) {
                 bot_map.map[bot_map.loaded_maps].name[i] = line[i];
           }
@@ -116,13 +117,13 @@ int load_list(struct CONFIG_LIST *list, char *file)
      
      while(fgets(line, 256, f) && list->l < list->m) {
           if(!list->list) {
-               cur = list->list = malloc(sizeof(struct CONFIG_NODE));
+               cur = list->list = calloc(sizeof(struct CONFIG_NODE), 1);
                cur->prev = list->list->prev = NULL;
                cur->next = NULL;
           }
           else {
                while(cur->next != NULL) cur = cur->next;
-               cur->next = malloc(sizeof(struct CONFIG_NODE));
+               cur->next = calloc(sizeof(struct CONFIG_NODE), 1);
                cur->next->prev = cur;
                cur = cur->next;
                cur->next = NULL;
@@ -139,6 +140,41 @@ int load_list(struct CONFIG_LIST *list, char *file)
      }
      fclose(f);
      return list->l;
+}
+
+void save_list(struct CONFIG_LIST *list, char *file)
+{
+     char error[256];
+     FILE *f = NULL;
+     struct CONFIG_NODE *cur;
+     
+   	 if(!(f = fopen(file, "w")))
+     {
+          sprintf(error, "No such file: %s", file);             
+          log_info(error);
+          return 0;
+     }
+     cur = list->list;
+     while(cur != NULL) {
+          fprintf(f, "%s\n", cur->data);
+          cur = cur->next;
+     }
+     fclose(f);
+}
+
+char * print_list(struct CONFIG_LIST *list, char *file)
+{
+     char buffer[512];
+     struct CONFIG_NODE *cur;
+
+     cur = list->list;
+     buffer[0] = '\0';
+     while(cur != NULL) {
+          strcat(buffer, cur->data);
+          strcat(buffer, " ");
+          cur = cur->next;
+     }
+     return buffer;
 }
 
 /******************************************************************************/
@@ -168,7 +204,6 @@ int get_string(struct CONFIG_LIST *list, char * in_name, int len)
           
      for(i = 0; i < list->l && cur; i++) {
           if(!strcmp(cur->data, name)) return i;
-          printf("%s - %s\n", cur->data, name);
           cur = cur->next;
      }
 
@@ -177,7 +212,7 @@ int get_string(struct CONFIG_LIST *list, char * in_name, int len)
 
 /******************************************************************************/
 /* int remove_string USAGE :                                                  */
-/*   load_list(&admin, "Crusadingknight", strlen("CrusAdingKNiGht"))          */
+/*   remove_string(&admin, "Crusadingknight", strlen("CrusAdingKNiGht"))      */
 /*         (All strings are tolower'd)                                        */
 /*   return list length on success, 0 on failure                              */ 
 /******************************************************************************/
@@ -195,26 +230,28 @@ int remove_string(struct CONFIG_LIST *list, char * in_name, int len)
           lower_name[i++] = tolower(*in_name);
           in_name++;
      }
+     lower_name[i] = '\0';
      
      strcpy(name, tolower(lower_name));
      cur = list->list;
      
      for(i = 0; i < list->l && cur; i++) {
-          if(!strcmp(cur->data, in_name)) {
+          if(!strcmp(cur->data, name)) {
                 cur->prev->next = cur->next;
-                cur->next->prev = cur->prev;
+                if(cur->next != NULL) cur->next->prev = cur->prev;
+                if(cur == list->list) list->list = cur->next;
                 free(cur);
-                return list->l--;
+                return --list->l;
           }
           cur = cur->next;
      }
      
-     return 0;
+     return -1;
 }
 
 /******************************************************************************/
-/* int remove_string USAGE :                                                  */
-/*   load_list(&admin, "Crusadingknight", strlen("CrusAdingKNiGht"))          */
+/* int add_string USAGE :                                                     */
+/*   add_string(&admin, "Crusadingknight", strlen("CrusAdingKNiGht"))         */
 /*         (All strings are tolower'd)                                        */
 /*   return list length on success, 0 on failure                              */     
 /******************************************************************************/
@@ -225,24 +262,26 @@ int add_string(struct CONFIG_LIST *list, char * in_name, int len)
      char name[31];
      char lower_name[30];
      
-     if(len >= 30) return 0; //Too big to be a name
+     if(len >= 30 || list->l >= list->m) return 0; //Too big to be a name
      if(strlen(in_name) <= 0 || list->l >= list->m) return 0;
      
      while(*in_name != '\0') {
           lower_name[i++] = tolower(*in_name);
           in_name++;
      }
+     lower_name[i] = '\0';
      
      strcpy(name, tolower(lower_name));
      cur = list->list;
-     while(cur->next) cur = cur->next;
+     while(cur->next != NULL) cur = cur->next;
      
-     cur->next = malloc(sizeof(struct CONFIG_LIST));
+     cur->next = malloc(sizeof(struct CONFIG_NODE));
      cur->next->prev = cur;
      cur = cur->next;
      
      strcpy(cur->data, name);
      cur->len = i;
+     cur->next = NULL;
      
-     return list->l++;;
+     return ++list->l;
 }
