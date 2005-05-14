@@ -1,5 +1,5 @@
-#include "local.h"
 #include "includes.h"
+#include "local.h"
 
 // Keep duplication down
 void hail_guildmember(char *name, char *guild, int gender)

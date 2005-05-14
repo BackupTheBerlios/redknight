@@ -28,4 +28,10 @@ int process_message (unsigned char* msg, int len);
 #define DEBUG_MEDIUM      2
 #define DEBUG_HIGH        3 
 
+typedef struct
+{
+	Sint16 b;
+	Sint16 c;
+} att16;
+
 #endif /* def BOTDEFS__H */

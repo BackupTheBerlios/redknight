@@ -1,9 +1,9 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "elbot.h"
 #include "client_serv.h"
 #include "includes.h"
+#include "elbot.h"
 #include "items.h"
 
 ITEM inv[36+8];
@@ -190,7 +190,7 @@ ITEM_NAME item_name_list[] = {
     { ITEM_IRON_PLATE_MAIL, "iron plate mail", "iron plate mail" },
     { ITEM_IRON_CUISSES, "iron cuisses", "iron cuisses" },
     { ITEM_IRON_GREAVE, "iron greaves", "iron greaves" },
-    { ITEM_UNKNOWN_ITEM34, "leather helm", "leather helms" },
+    { ITEM_LEATHER_HELM, "leather helm", "leather helms" },
     { ITEM_UNKNOWN_ITEM35, "UNKNOWN_ITEM35", "UNKNOWN_ITEM35" },
     { ITEM_UNKNOWN_ITEM36, "UNKNOWN_ITEM36", "UNKNOWN_ITEM36" },
     { ITEM_UNKNOWN_ITEM37, "UNKNOWN_ITEM37", "UNKNOWN_ITEM37" },
@@ -245,6 +245,7 @@ void get_inventory_from_server(Uint8 *data)
 		inv[pos].id = *((Uint16 *)(data+i*8+1));
 		inv[pos].quantity = *((Uint32 *)(data+i*8+3));
 	}
+	parse_items();        // Find out our equipment
 }
 
 void get_new_inventory_item_from_server(Uint8 *data)
@@ -254,7 +255,7 @@ void get_new_inventory_item_from_server(Uint8 *data)
 	pos = data[6];
 	inv[pos].id = *((Uint16 *)(data));
 	inv[pos].quantity = *((Uint32 *)(data+2));
-
+    equip_item(pos);  // Check if we can equip it
 //	if (!trade.verified) {
 //		check_inventory();
 //	}
@@ -375,3 +376,142 @@ void put_bag_on_ground(int bag_x, int bag_y, int id)
      no_bags++;
 }
      
+/******************************************/
+/*-----------Equipment section------------*/
+/******************************************/
+
+// LISTS. To be configurable.
+#define HEAD    0
+#define CAPE    1
+#define MED     2
+#define TORSO   3
+#define SHIELD  4
+#define WEAPON  5
+#define LEG     6
+#define BOOT    7
+
+Uint16 equipment[8] = {0,0,0,0,0,0,0,0};
+
+Uint16 eqlist[8][10] = {
+       {    ITEM_IRON_HELMET,
+            ITEM_LEATHER_HELM,
+            ITEM_FUR_HAT,
+            0,0,0,0,0,0,0
+       }, 
+       {0,0,0,0,0,0,0,0,0,0}, 
+       {    ITEM_STARS_MEDALLION,
+       	    ITEM_SUN_MEDALLION,
+	        ITEM_MOON_MEDALLION,
+       	    ITEM_UNICORN_MEDALLION,
+            0,0,0,0,0,0
+       }, 
+       {    ITEM_IRON_PLATE_MAIL,
+            ITEM_TITANIUM_CHAINMAIL,
+            ITEM_STEEL_CHAINMAIL,
+            ITEM_IRON_CHAINMAIL,
+            ITEM_LEATHER_TORSO,
+            0,0,0,0,0      // Filler
+       }, 
+       {    ITEM_STEEL_SHIELD,
+            ITEM_IRON_SHIELD,
+            ITEM_ENHANCED_WOODEN_SHIELD,
+            ITEM_WOODEN_SHIELD,
+            0,0,0,0,0,0},
+       {    ITEM_TIT_AXE,
+            ITEM_TITANIUM_STEEL_SERPENT_SWORD,
+            ITEM_STEEL_AXE,
+            ITEM_TITANIUM_STEEL_LONG_SWORD,
+            ITEM_IRON_AXE,
+            ITEM_TITANIUM_STEEL_SHORT_SWORD,
+            ITEM_TWO_EDGED_STEEL_SWORD,
+            ITEM_STEEL_LONG_SWORD,
+            ITEM_IRON_BROAD_SWORD,
+            ITEM_IRON_SWORD    
+       }, 
+       {    ITEM_LEATHER_PANTS,
+            ITEM_IRON_CUISSES,
+            0,0,0,0,0,0,0,0},
+       {    ITEM_LEATHER_BOOTS,
+            ITEM_IRON_GREAVE
+            ,0,0,0,0,0,0,0,0}     
+};
+
+void parse_items()
+{
+     int i, j, k;
+     
+     for(j = 0; j < 8; j++) {
+          for(i = 36; i < 44; i++) {
+                if(inv[i].quantity == 0) continue;
+                for(k = 0; k < 10; k++) {
+                     if(eqlist[j][k] == 0) continue;
+                     if(inv[i].id == eqlist[j][k]) equipment[j] = i;
+                }
+          }
+     }
+}
+
+
+void equip_item(Uint8 pos)
+{
+     int i, j, curpos, invpos;
+     Uint8 str[8];
+     
+     for(i = 0; i < 8; i++) {
+           for(j = 0; j < 10; j++) {
+                 if(eqlist[i][j] == 0) continue;
+                 if(eqlist[i][j] == inv[pos].id)
+                 {
+                      if(equipment[i] != 0)
+                      {
+                            // Is it better ?
+                            for(curpos = 0; curpos < 10; curpos++) {
+                                  if(eqlist[i][curpos] == 0) continue;
+                                  if(eqlist[i][curpos] == inv[equipment[i]].id)
+                                  {
+                                       invpos = curpos;
+                                       break;
+                                  }
+                            }
+                      }
+                      // Check ratings
+                      if(j < invpos || equipment[i] == 0)
+                      {
+                           if(equipment[i] != 0)
+                           {
+                                 str[0] = MOVE_INVENTORY_ITEM;
+			                     str[1] = equipment[i];
+			                     // Find an empty space:
+                                 for(j = 0; j < 36; j++) {
+                                       if(inv[j].quantity == 0)
+                                       {
+                                             str[2] = j;
+			                                 send_to_server(str,3);
+                                       }
+                                }
+                           }
+                           // Now, move the item to equip:
+                           str[0] = MOVE_INVENTORY_ITEM;
+			               str[1] = pos;
+			               if(equipment[i] != 0)
+                           {
+                                 str[2] = equipment[i];
+                           } 
+                           else
+                           {
+                                 // Find an empty slot:
+                                 for(j = 36; j < 44; j++) {
+                                       if(inv[j].quantity == 0)
+                                       {
+                                            str[2] = j;
+                                            equipment[i] = j;
+                                       }
+                                 }
+                           }
+                           send_to_server(str,3);
+                           return;
+                      }
+                 }
+           }
+     }                    
+}

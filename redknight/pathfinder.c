@@ -303,10 +303,12 @@ int pf_move()
 	actor *me;
 	
 	if(pf_follow_path != 1 || !(me = pf_get_our_actor())) {
+        log_error("Cannot find self, cannot move!\n");
         return 0;
 	}
 	
 	if(me->fighting == 1) {
+        log_error("Cannot move, currently fighting!\n");
         return 0;
     }
 	
@@ -314,8 +316,9 @@ int pf_move()
 	y = me->y_tile_pos;
 	
 	// Do we need to re-evaluate ?
-	if ((PF_DIFF(x, pf_dst_tile->x) < 2 && PF_DIFF(y, pf_dst_tile->y) < 2)) {
+	if ((PF_DIFF(x, pf_dst_tile->x) < 3 && PF_DIFF(y, pf_dst_tile->y) < 3)) {
         pf_destroy_path();
+        return 1;
 	} else {
 		PF_TILE *t = pf_get_tile(x, y);
 		int i = 0, j = 0;
@@ -403,8 +406,8 @@ int pseudo_pf_find_path(int x, int y)
 		return 1;
 	}
 	
-	for (x = ux-4; x <= ux+4 ; x++) {
-		for (y = uy-4; y <= uy+4; y++) {
+	for (x = ux-3; x <= ux+3 ; x++) {
+		for (y = uy-3; y <= uy+3; y++) {
 			if (x == ux && y == uy) {
 				continue;
 			}

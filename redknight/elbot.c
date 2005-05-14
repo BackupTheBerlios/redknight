@@ -324,6 +324,71 @@ void process_text_message(const char *msg, char *chat_name, int PM) {
     free(data);       
 }
 
+
+// STATS STUFF
+Sint16 food = 45;   // Default, so we don't worry
+att16 human;
+att16 magic;
+att16 carry;
+att16 matter;
+att16 ethereal;
+
+void proc_stats(Sint16 *stat)
+{
+     // Levels we need to know :
+     human.b = stat[12];
+     human.c = stat[13];          
+     magic.b = stat[36];
+     magic.c = stat[37];          
+     carry.b = stat[40];
+     carry.c = stat[41];
+     matter.b = stat[42];
+     matter.c = stat[43];
+     ethereal.b = stat[44];
+     ethereal.c = stat[45];
+     food = stat[46];
+}
+
+void proc_stat(Uint8 stat, Sint32 value)
+{
+     switch(stat)
+     {
+   		case HUMAN_CUR:
+			human.c = value;
+            break;
+		case HUMAN_BASE:
+			human.b = value;
+            break;
+		case MAG_S_CUR:
+			magic.c = value;
+            break;
+		case MAG_S_BASE:
+			magic.b = value;
+            break;
+		case CARRY_WGHT_CUR:
+			carry.c = value;
+            break;
+		case CARRY_WGHT_BASE:
+			carry.b = value;
+            break;
+		case MAT_POINT_CUR:
+			matter.c = value;
+            break;
+		case MAT_POINT_BASE:
+			matter.b = value;
+            break;
+		case ETH_POINT_CUR:
+			ethereal.c = value;
+            break;
+		case ETH_POINT_BASE:
+			ethereal.b = value;
+            break;
+		case FOOD_LEV:
+			food = value;
+            break;
+   }
+}
+
  
 // checks what kind of message was recieved...
 int process_message (unsigned char* msg, int len) {
@@ -386,12 +451,19 @@ int process_message (unsigned char* msg, int len) {
           load_map(msg+3);
       }
       break;
-  // Login stuff
+ // Stat Stuff
+   	case HERE_YOUR_STATS:
+		proc_stats((Sint16 *)(msg+3));
+		break;
+    case SEND_PARTIAL_STAT:
+		proc_stat(*((Uint8 *)(msg+3)),SDL_SwapLE32(*((Sint32 *)(msg+4))));
+		break; 
+ // Login stuff
     case LOG_IN_OK:
     case LOG_IN_NOT_OK:    
       logged_in = msg[0];
       break;
-  // Text Stuff
+ // Text Stuff
     case RAW_TEXT:
       process_raw_text (msg+3, len-3);
       break;
@@ -443,7 +515,7 @@ int login (const char *name, const char *passwd) {
 
 
 
-struct TIMER *heartbeatptr, *storyptr, *guildmapptr, *pf_moveptr;
+struct TIMER *heartbeatptr, *storyptr, *guildmapptr, *pf_moveptr, *selfptr;
 
 // Main Timer wrappers
 Uint32 last_heart_beat;
@@ -468,40 +540,55 @@ int guildmap_timer(Uint32 time)
      actor *me = NULL;
      int i;
              
-     // Are we on a bag ? 
-     if((me = pf_get_our_actor()) != NULL) {
-          for(i = 0; i < no_bags; i++) {
-               if(PF_DIFF(me->x_tile_pos, bags_list[i].x) == 0 && PF_DIFF(me->y_tile_pos, bags_list[i].y) == 0)
-               {
-                     open_bag(i);
-                     return 1;
-               }
-          }
-     }
+
      if(insult_enemy == 1 && bot_map.map[bot_map.cur_map].id == CONFIG_NULL)
      {
+         if((me = pf_get_our_actor()) == NULL || me->fighting == 1) return 1; // Can't do anything without it
+         // Are we near a bag ? 
+         for(i = 0; i < no_bags; i++) {
+              if(PF_DIFF(me->x_tile_pos, bags_list[i].x) < 2 && PF_DIFF(me->y_tile_pos, bags_list[i].y) < 2)
+              {
+                   open_bag(i);
+                   return 1;
+              }
+         }
          if(first_node != NULL)
          {        
-              if((me=pf_get_our_actor()) != NULL) {
-                  if(me->fighting != 1) {
-                       if((first_node->time - 2000) <= time && !(first_node->k->fighting))
-                       {             
-                            pseudo_pf_find_path(first_node->k->x_tile_pos, 
-                                           first_node->k->y_tile_pos);
+              if((first_node->time - 2000) <= time && !(first_node->k->fighting))
+              {             
+                   pseudo_pf_find_path(first_node->k->x_tile_pos, 
+                                       first_node->k->y_tile_pos);
                                  
-                            if((first_node->time) <= time) attack(first_node->k->actor_id);
-                       }
-                  }
+                   if((first_node->time) <= time) attack(first_node->k->actor_id);
               }
          } else {
               // Time to return to base...
-              if((me = pf_get_our_actor()) != NULL) {
-                  if(me->x_tile_pos != bot_map.map[bot_map.cur_map].x && me->y_tile_pos != bot_map.map[bot_map.cur_map].y)
-                      pseudo_pf_find_path(bot_map.map[bot_map.cur_map].x, bot_map.map[bot_map.cur_map].y);                    
-              }
+              if(PFDIFF(me->x_tile_pos, bot_map.map[bot_map.cur_map].x) >= 3 && PF_DIFF(me->y_tile_pos, bot_map.map[bot_map.cur_map].y) >= 3)
+                   if(!pseudo_pf_find_path(bot_map.map[bot_map.cur_map].x, bot_map.map[bot_map.cur_map].y)) log_error("Cannot find valid path!\n");
          }                       
      }
      return 1;
+}
+
+int self_timer(Uint32 time)
+{
+    int i;
+    Uint8 str[10];
+    // Check the food level
+    if(food < 25)
+    {
+          for(i = 0; i < 36; i++) {
+                if(inv[i].quantity > 0 && (inv[i].id == ITEM_FRUIT || inv[i].id == ITEM_VEGETABLES))
+                {
+                     str[0] = USE_INVENTORY_ITEM;
+				     str[1] = i;
+					 send_to_server(str,2);
+					 break;
+                }
+          }
+    }
+    
+    return 1;   
 }
      
      
@@ -653,8 +740,9 @@ int init_bot()
   // Create the timers
   heartbeatptr = add_timer(0, 25000, heartbeat_timer);
   storyptr = add_timer(0, 1000, story_timer);
-  guildmapptr = add_timer(0, 2500, guildmap_timer);
-  pf_moveptr = add_timer(0, 2500, timed_pf_move);
+  guildmapptr = add_timer(0, 2000, guildmap_timer);
+  pf_moveptr = add_timer(0, 2000, timed_pf_move);
+  selfptr = add_timer(0, 10000, self_timer);
   
   err = init_connection (hostname, port);
   if (err) {

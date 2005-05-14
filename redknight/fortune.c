@@ -6,6 +6,7 @@
 #ifdef STANDALONE
 #define output(MYSTRING) printf(MYSTRING);
 #else
+#include "includes.h"
 #include "elbot.h"
 #define output(MYSTRING) send_pm("%s%s", name, MYSTRING); sprintf(log,"Fortune:%s",MYSTRING); log_info(log);
 #endif
