@@ -563,7 +563,7 @@ int guildmap_timer(Uint32 time)
               }
          } else {
               // Time to return to base...
-              if(PFDIFF(me->x_tile_pos, bot_map.map[bot_map.cur_map].x) >= 3 && PF_DIFF(me->y_tile_pos, bot_map.map[bot_map.cur_map].y) >= 3)
+              if(PF_DIFF(me->x_tile_pos, bot_map.map[bot_map.cur_map].x) >= 3 && PF_DIFF(me->y_tile_pos, bot_map.map[bot_map.cur_map].y) >= 3)
                    if(!pseudo_pf_find_path(bot_map.map[bot_map.cur_map].x, bot_map.map[bot_map.cur_map].y)) log_error("Cannot find valid path!\n");
          }                       
      }
