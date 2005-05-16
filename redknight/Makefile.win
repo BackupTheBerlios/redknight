@@ -12,7 +12,7 @@ INCS =  -I"C:/Dev-Cpp/include"
 CXXINCS =  -I"C:/Dev-Cpp/include/c++"  -I"C:/Dev-Cpp/include/c++/mingw32"  -I"C:/Dev-Cpp/include/c++/backward"  -I"C:/Dev-Cpp/include" 
 BIN  = ../redknight.exe
 CXXFLAGS = $(CXXINCS)   -w
-CFLAGS = $(INCS) -DWINDOWS -D_WIN32 -w
+CFLAGS = $(INCS) -DWINDOWS -D_WIN32 -fexpensive-optimizations -O3   -w
 RM = rm -f
 
 .PHONY: all all-before all-after clean clean-custom

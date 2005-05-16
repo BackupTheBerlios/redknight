@@ -55,7 +55,6 @@ void getargs(int argc, char **argv)
                  exit(0);
            }
      }
-     printf("Returning ... ");
      return 1;
 }          
 

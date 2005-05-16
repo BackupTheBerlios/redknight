@@ -20,6 +20,12 @@ void timer_loop(Uint32 time)
      
      // Loop, going to the next section, while there is one
      for(cur = timer; cur != NULL; cur = cur->next) {
+           if(time < (cur->t - cur->n - 1))  // Looks like we've stuck
+           {
+                 cur->t = time;          // Reset it
+                 log_error("Resetting Timer - it was too high!\n");
+                 continue;
+           }
            if(cur->t < time) {
                  // Run the callback
                  if(cur->c(time))
@@ -31,7 +37,7 @@ void timer_loop(Uint32 time)
 }
 
 // Return a timer pointer so we can delete it
-struct TIMER * add_timer(Uint32 start, Uint16 increment, unsigned short (*func)())
+struct TIMER * add_timer(Uint16 increment, unsigned short (*func)())
 {
      struct TIMER *cur, *temp;  // Use the temp pointer and arrangement to
                                 // prevent threading problems
@@ -41,7 +47,7 @@ struct TIMER * add_timer(Uint32 start, Uint16 increment, unsigned short (*func)(
      temp->next = NULL;
      
      // Populate it
-     temp->t = start;
+     temp->t = SDL_GetTicks();   // Current time
      temp->n = increment;
      temp->c = func;
      

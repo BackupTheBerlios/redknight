@@ -264,7 +264,10 @@ void get_new_inventory_item_from_server(Uint8 *data)
 void remove_inventory_item(int pos)
 {
 	inv[pos].quantity = 0;
-	
+	if(pos >= 36)
+	{
+        unequip_item(pos);
+    }
 //	if (!trade.verified) {
 //		check_inventory();
 //	}
@@ -514,4 +517,16 @@ void equip_item(Uint8 pos)
                  }
            }
      }                    
+}
+
+
+void unequip_item(Uint8 pos)
+{
+     int i;
+     // We can assume we've made sure it's at the relevant position
+     // if(pos >= 36 && pos < 44)
+     
+     for(i = 0; i < 10; i++) {
+           if(equipment[i] == pos) equipment[i] = 0;       // Reset it
+     }
 }

@@ -12,8 +12,9 @@ void hail_guildmember(char *name, char *guild, int gender)
 /* FIXME: Needs cleanup */
 
 // This reads the names of people that come into the bots view and responds.
-int check_if_we_should_hail (const char *data, int gender) {
+int check_if_we_should_hail (const Uint8 *data, int gender) {
   int i, j, len = strlen (data);
+  
   memset (name, 0, 40);
   memset (guild, 0, 5);
   for (i = 0; i < len; i++)
@@ -26,6 +27,11 @@ int check_if_we_should_hail (const char *data, int gender) {
   strcpy (name+j, "\0");
   if (i < len)strncpy (guild, data+i+1, 5-1);
   log_info ("I see: %s\n", name);
+  // Test if they're a demi-god. We want to be safe...
+  if(data[0] == (127+c_green3)) {
+      send_raw_text("#help_me %s is uning demigod in my cave - this must be an abuse of power to bypass me!", name); 
+      return 0;
+  }
   if (strcasecmp (name, boss_name) == 0) {
   	if (hail_master == 1 || (hail_master == 2 && bot_map.map[bot_map.cur_map].id == CONFIG_NULL)) {
         hail_guildmember(name, guild, gender);

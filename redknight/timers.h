@@ -17,7 +17,7 @@ extern struct TIMER *timer;
 
 // PROTOTYPES
 void timer_loop(Uint32 time);
-struct TIMER * add_timer(Uint32 start, Uint16 increment, unsigned short (*func)());
+struct TIMER * add_timer(Uint16 increment, unsigned short (*func)());
 unsigned short remove_timer(struct TIMER *kill);
 
 #endif

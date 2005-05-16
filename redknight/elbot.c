@@ -543,7 +543,11 @@ int guildmap_timer(Uint32 time)
 
      if(insult_enemy == 1 && bot_map.map[bot_map.cur_map].id == CONFIG_NULL)
      {
-         if((me = pf_get_our_actor()) == NULL || me->fighting == 1) return 1; // Can't do anything without it
+         if((me = pf_get_our_actor()) == NULL || me->fighting == 1) 
+         {
+              log_info("Cannot move, currently missing or fighting\n");
+              return 1; // Can't do anything without it
+         }
          // Are we near a bag ? 
          for(i = 0; i < no_bags; i++) {
               if(PF_DIFF(me->x_tile_pos, bags_list[i].x) < 2 && PF_DIFF(me->y_tile_pos, bags_list[i].y) < 2)
@@ -563,9 +567,12 @@ int guildmap_timer(Uint32 time)
               }
          } else {
               // Time to return to base...
-              if(PF_DIFF(me->x_tile_pos, bot_map.map[bot_map.cur_map].x) >= 3 && PF_DIFF(me->y_tile_pos, bot_map.map[bot_map.cur_map].y) >= 3)
-                   if(!pseudo_pf_find_path(bot_map.map[bot_map.cur_map].x, bot_map.map[bot_map.cur_map].y)) log_error("Cannot find valid path!\n");
-         }                       
+              if((PF_DIFF(me->x_tile_pos, bot_map.map[bot_map.cur_map].x) >= 3 || PF_DIFF(me->y_tile_pos, bot_map.map[bot_map.cur_map].y) >= 3)
+                  && pf_follow_path == 0)
+              {
+                   if(pseudo_pf_find_path(bot_map.map[bot_map.cur_map].x, bot_map.map[bot_map.cur_map].y) == 0) log_error("Cannot find valid path!\n");
+              }
+         }
      }
      return 1;
 }
@@ -594,58 +601,15 @@ int self_timer(Uint32 time)
      
 
 void do_event_loop () {
-/*  unsigned int last_heart_beat = SDL_GetTicks (), time;
-  unsigned char heartbeat = HEART_BEAT;
-  actor *me = NULL; */
   Uint32 time;
 
   while (1) {
-    get_server_message ();
+    get_server_message();
     
     // Normal Timers
-    time = SDL_GetTicks ();
-    
+    time = SDL_GetTicks();    
     timer_loop(time);
-    
-    /*
-    if (last_heart_beat + 25 * 1000 < time) {
-      // another 25 seconds have passed.
-      // let the server know we're still there before the Grue eats us...
-      send_to_server (&heartbeat, 1);
-      last_heart_beat = time;
-    }    
-    //read?
-    if(story != -1 && story_time <= time )read_story();
 
-    // Action Timers
-    // We rely on our actor existing so we can complete the following...
-    timed_pf_move(time);
-    
-    if(insult_enemy == 1 && (last_attack <= time) && bot_map.map[bot_map.cur_map].id == CONFIG_NULL)
-    {
-         if(first_node != NULL)
-         {        
-              last_attack = time+2500;          
-              if((me=pf_get_our_actor()) != NULL) {
-                  if(me->fighting != 1) {           
-                       if((first_node->time - 2000) <= time && !(first_node->k->fighting))
-                       {             
-                            pseudo_pf_find_path(first_node->k->x_tile_pos, 
-                                           first_node->k->y_tile_pos);
-                                 
-                            if((first_node->time) <= time) attack(first_node->k->actor_id);
-                       }
-                  }
-              }
-         } else {
-              // Time to return to base...
-              if((me=pf_get_our_actor()) != NULL) {
-                  if(me->x_tile_pos != bot_map.map[bot_map.cur_map].x && me->y_tile_pos != bot_map.map[bot_map.cur_map].y)
-                      pseudo_pf_find_path(bot_map.map[bot_map.cur_map].x, bot_map.map[bot_map.cur_map].y);                    
-              }
-         }  
-    }
-    */
     SDL_Delay (100);
   }
 }
@@ -738,11 +702,11 @@ int init_bot()
   load_map_config("map.ini");
   
   // Create the timers
-  heartbeatptr = add_timer(0, 25000, heartbeat_timer);
-  storyptr = add_timer(0, 1000, story_timer);
-  guildmapptr = add_timer(0, 2000, guildmap_timer);
-  pf_moveptr = add_timer(0, 2000, timed_pf_move);
-  selfptr = add_timer(0, 10000, self_timer);
+  heartbeatptr = add_timer(25000, heartbeat_timer);
+  storyptr = add_timer(1000, story_timer);
+  guildmapptr = add_timer(2000, guildmap_timer);
+  pf_moveptr = add_timer(2000, timed_pf_move);
+  selfptr = add_timer(10000, self_timer);
   
   err = init_connection (hostname, port);
   if (err) {

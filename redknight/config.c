@@ -5,6 +5,9 @@ struct BOT_WORLD bot_map = {
      {}, -1, 0
 };
 
+/*************************************/
+/*-Specialised Configuration Systems-*/
+/*************************************/
 
 int load_map_config(char *file)
 {
@@ -57,7 +60,6 @@ int load_map_config(char *file)
 }
     
 
-
 // New check_map
 void examine_map(char *name)
 {
@@ -75,6 +77,10 @@ void examine_map(char *name)
      send_raw_text("#beam me");
 }
 
+// Items handling - What do we pick up, what do we wear?
+// Basic Handling - read each line, convert the name to an ID, then save the ID
+// TODO
+// ..
 
 /******************************************************************************/
 /*--------------------------CONFIGURATION LISTS SECTION-----------------------*/
