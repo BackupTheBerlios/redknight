@@ -21,6 +21,7 @@ extern int hail_master;
 // GLOBAL VARIABLES
 actor *actors_list[1000];
 int max_actors = 0;
+int yourself;
 
 // STRUCTURE DEFINITIONS
 struct EquipStrings {
@@ -80,6 +81,7 @@ void add_actor_from_server(char * in_data, int kill)
 	if((actors_list[i]->actor_type == 1) || (actors_list[i]->actor_type == 4)) {
 	    my_strncp(actors_list[i]->actor_name,&in_data[28],30); //<--Enhanced
     }
+    strcpy(actors_list[i]->guild, guild);
     if(kill == 1) {
         new_node = malloc(sizeof(struct kill_queue));
         new_node->time = SDL_GetTicks() + 5000;      // Though this will only chase newbies ...
@@ -203,6 +205,20 @@ void destroy_actor(int actor_id)
         if(debug >= DEBUG_LOW)log_info("Finished destroying actor.\n");
 }
 
+int get_actor_by_name(const char *name)
+{
+	int i;
+	
+	for (i = 0; i <= max_actors; i++) {
+		if (!actors_list[i]) {
+			continue;
+		}
+		if (!strcasecmp(name, actors_list[i]->actor_name)) {
+			return i;
+		}
+	}
+	return -1;
+}
 
 //Look over the actor info
 void check_actor_equip(char * in_data)
@@ -341,26 +357,7 @@ void process_command(int actor, char command)
           break;
 	 }
 }
-
-
-void attack(int id)
-{
-    Uint8 str[10];
-    
-    str[0]=ATTACK_SOMEONE;
-    *((int *)(str+1))=id;
-    send_to_server(str,5);
-}
-
-void use_object(int id)
-{
-     Uint8 str[10];
-     
-     str[0]=USE_MAP_OBJECT;
-     *((int *)(str+1))=id;
-     *((int *)(str+5))=-1;
-     send_to_server(str,9);
-}          
+        
 
 #ifdef DETECT_EQUIP
 void process_equipment(int equipment_part, Uint8 equipment_id, struct EquipStrings *E)

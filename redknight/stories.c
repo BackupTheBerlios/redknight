@@ -120,6 +120,7 @@ void read_story()
     return;
 }
 
+//FIXME: returns local variable, and conditional causes warnings
 char *dump_story()
 {
      char text[1024];

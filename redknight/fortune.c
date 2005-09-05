@@ -11,7 +11,7 @@
 #define output(MYSTRING) send_pm("%s%s", name, MYSTRING); sprintf(log,"Fortune:%s",MYSTRING); log_info(log);
 #endif
 
-#define MAXCHAR 152
+#define FORTUNEMAXCHAR 152
 
 long makerand(long max)
 {
@@ -24,7 +24,7 @@ long makerand(long max)
 int txt2bin(char *file)
 {
      int i = 0, j = 0, fd = 0, _fd = 0, s = 1, c = 0, t = 0;
-     char b, buffer[MAXCHAR];
+     char b, buffer[FORTUNEMAXCHAR];
      char lastchar, temp;
      
      fd = open(file, 0);
@@ -59,7 +59,7 @@ int txt2bin(char *file)
                            i = 0;
                            continue;
                      }
-                     else if(i >= MAXCHAR)
+                     else if(i >= FORTUNEMAXCHAR)
                      {
                           i = 0;
                           //Ok, get to \n%
@@ -84,7 +84,7 @@ int txt2bin(char *file)
      write(_fd, &c, sizeof(c));
      
      //Make sure the buffer is initilaised
-     while(j < MAXCHAR)
+     while(j < FORTUNEMAXCHAR)
              buffer[j++]='\0';
      j = 0;
      s = 1;
@@ -104,17 +104,17 @@ int txt2bin(char *file)
                      if(b == '%' && lastchar == '\n') 
                      {
                            //Write and reset
-                           write(_fd, buffer, MAXCHAR);
+                           write(_fd, buffer, FORTUNEMAXCHAR);
                            i = 0;
-                           while(j < MAXCHAR)
+                           while(j < FORTUNEMAXCHAR)
                                    buffer[j++]='\0';
                            j = 0;
                            continue;
                      }
-                     else if(i >= MAXCHAR)
+                     else if(i >= FORTUNEMAXCHAR)
                      {
                           i = 0;
-                          while(j < MAXCHAR)
+                          while(j < FORTUNEMAXCHAR)
                                    buffer[j++]='\0';
                           j = 0;
                           //Ok, get to \n%
@@ -132,7 +132,7 @@ int txt2bin(char *file)
      }
      #else
      j = 0;
-     while(j < MAXCHAR)
+     while(j < FORTUNEMAXCHAR)
              buffer[j++]='\0';
      //Skip the header
      write(fd, &c, (long)sizeof(c));
@@ -154,16 +154,16 @@ int txt2bin(char *file)
                            t += (i+1);
                            write(_fd, &t, sizeof(t));
                            i = 0;
-                           while(j < MAXCHAR)
+                           while(j < FORTUNEMAXCHAR)
                                    buffer[j++]='\0';
                            j = 0;
                            continue;
                      }
-                     else if(i >= MAXCHAR)
+                     else if(i >= FORTUNEMAXCHAR)
                      {
                           i = 0;
                           b = 0;
-                          while(j < MAXCHAR)
+                          while(j < FORTUNEMAXCHAR)
                                    buffer[j++]='\0';
                           j = 0;
                           continue;
@@ -174,7 +174,7 @@ int txt2bin(char *file)
      }
      //Reset buffer
      j = 0;
-     while(j < MAXCHAR)
+     while(j < FORTUNEMAXCHAR)
              buffer[j++]='\0';
      //Write c
      lseek(_fd, 0L, 0);
@@ -201,16 +201,16 @@ int txt2bin(char *file)
                            buffer[i+1]='\0';
                            write(_fd, buffer, i+1);
                            i = 0;
-                           while(j < MAXCHAR)
+                           while(j < FORTUNEMAXCHAR)
                                    buffer[j++]='\0';
                            j = 0;
                            continue;
                      }
-                     else if(i >= MAXCHAR)
+                     else if(i >= FORTUNEMAXCHAR)
                      {
                           i = 0;
                           b = 0;
-                          while(j < MAXCHAR)
+                          while(j < FORTUNEMAXCHAR)
                                    buffer[j++]='\0';
                           j = 0;
                           continue;
@@ -230,7 +230,7 @@ int get_quote(char *file, char *name)
 {
      int fd = 0, c = 0, s = 0, i = 0;
      long rand_no = 0;
-     char buffer[MAXCHAR], log[512];
+     char buffer[FORTUNEMAXCHAR], log[512];
           
      fd = open(file, 0);
      
@@ -246,9 +246,9 @@ int get_quote(char *file, char *name)
      
      #ifndef HEADER
      //lseek it
-     lseek(fd, (long)sizeof(c)+(MAXCHAR * rand_no), 0);
+     lseek(fd, (long)sizeof(c)+(FORTUNEMAXCHAR * rand_no), 0);
      //Read it
-     s = read(fd, buffer, MAXCHAR);
+     s = read(fd, buffer, FORTUNEMAXCHAR);
      #else
      // BROKEN
      //Seek it

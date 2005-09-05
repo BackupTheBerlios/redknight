@@ -29,7 +29,7 @@ int check_if_we_should_hail (const Uint8 *data, int gender) {
   log_info ("I see: %s\n", name);
   // Test if they're a demi-god. We want to be safe...
   if(data[0] == (127+c_green3)) {
-      send_raw_text("#help_me %s is uning demigod in my cave - this must be an abuse of power to bypass me!", name); 
+      send_raw_text("#help_me %s is using demigod in my cave - this must be an abuse of power to bypass me!", name); 
       return 0;
   }
   if (strcasecmp (name, boss_name) == 0) {

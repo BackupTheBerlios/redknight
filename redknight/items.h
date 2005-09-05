@@ -18,6 +18,8 @@ struct BAG {
 extern struct BAG bags_list[200];
 extern ITEM bag[50];
 extern Uint16 no_bags;
+extern Uint16 eqlist[8][10];
+const char *EQ_LIST[8];
 
 // FIX ME - Item ID's have been updated.
 typedef enum {

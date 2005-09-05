@@ -22,7 +22,10 @@
 #include <stdarg.h>
 #include <time.h>
 #include "log.h"
+
 extern unsigned short int verbose;
+
+
 /* log functions: log_info simply writes a line to the file elbot.log, log_error
  * write "ERROR at <time>" followed by an error message. */
 void log_info (const char *fmt, ...) {

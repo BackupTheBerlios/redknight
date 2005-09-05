@@ -9,6 +9,7 @@ typedef struct
 	int fighting;
 
     char actor_name[30];
+    char guild[6];
 
 	int x_tile_pos;
 	int y_tile_pos;

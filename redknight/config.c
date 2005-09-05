@@ -1,13 +1,18 @@
 #include "includes.h"
+#include "items.h"      // For item loading and checking on startup.
 
 // GLOBAL VARIABLES
 struct BOT_WORLD bot_map = {
      {}, -1, 0
 };
 
-/*************************************/
-/*-Specialised Configuration Systems-*/
-/*************************************/
+/******************************************************************************/
+/*--------------------SPECIALISED CONFIGURATION SYSTEMS-----------------------*/
+/******************************************************************************/
+
+                  /**************************************/
+                  /*     Map handling Configuration     */
+                  /**************************************/
 
 int load_map_config(char *file)
 {
@@ -77,10 +82,90 @@ void examine_map(char *name)
      send_raw_text("#beam me");
 }
 
-// Items handling - What do we pick up, what do we wear?
-// Basic Handling - read each line, convert the name to an ID, then save the ID
-// TODO
-// ..
+                  /****************************************/
+                  /*     Items handling Configuration     */
+                  /****************************************/
+
+// Syntax:
+// USE [TYPE]
+// item
+// item
+// FI
+
+void process_equip_type(FILE *f, int type)
+{
+     int i, e, id;
+     char line[512];
+     char buffer[512];
+     
+     e = 0;           // Equipment list counter
+     // Process the type
+     while (fgets(line, 512, f) && e < 10) {
+           if(line[0] == '#') continue;    // Skip comments
+           // Copy all but \n
+           for(i = 0; i < 512 && line[i] != '\n'; i++) {
+                 buffer[i] = tolower(line[i]);
+           }
+           buffer[i] = '\0';
+           // Is it finished?
+           if(!strncmp("FI", buffer, 2))
+           {
+                 return;
+           }
+           // Get and set the ID
+           if((id = get_item_id(buffer)) != ITEM_UNKNOWN)
+           {
+                  eqlist[type][e] = id;
+           } else {
+                  log_error("Invalid item name: %s", buffer);
+                  exit(0);
+           }
+     }
+     // We shouldn't be here...
+     log_error("Equipment definition for %s doesn't end with FI!", EQ_LIST[type]);
+     exit(0);
+}
+     
+
+void load_equip_list(char *file)
+{
+    int i, j;
+    FILE *f = NULL;
+    char line[512];
+    char buffer[512];
+     
+    if(!(f = fopen(file, "r")))
+    {
+          sprintf(buffer, "No such file: %s", file);             
+          log_info(buffer);
+          return;
+    }
+    while (fgets(line, 512, f)) {
+          if(line[0] == '#') continue; // Comment line
+          if(!strncmp("USE ", line, 4))
+          {
+                // Copy the type
+                for(i = 0; i < 7 && line[i+4] != '\n'; i++) {
+                      buffer[i] = tolower(line[i+4]);
+                }
+                buffer[i] = '\0';
+                // Get the type
+                for(i = 0; i < 8; i++) {
+                      if(!strcmp(buffer, EQ_LIST[i]))
+                      {
+                             process_equip_type(f, i);
+                             break;
+                      }
+                }
+          } 
+          else if(!strncmp("GET", line, 3))
+          {
+               // TODO
+               // ..
+          }
+    }
+}
+                                  
 
 /******************************************************************************/
 /*--------------------------CONFIGURATION LISTS SECTION-----------------------*/
@@ -158,7 +243,7 @@ void save_list(struct CONFIG_LIST *list, char *file)
      {
           sprintf(error, "No such file: %s", file);             
           log_info(error);
-          return 0;
+          return;
      }
      cur = list->list;
      while(cur != NULL) {
@@ -168,9 +253,8 @@ void save_list(struct CONFIG_LIST *list, char *file)
      fclose(f);
 }
 
-char * print_list(struct CONFIG_LIST *list, char *file)
+char * print_list(struct CONFIG_LIST *list, char *buffer)
 {
-     char buffer[512];
      struct CONFIG_NODE *cur;
 
      cur = list->list;

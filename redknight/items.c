@@ -274,6 +274,46 @@ void remove_inventory_item(int pos)
 }
 
 
+// Maybe this should go in a struct...
+extern att16 carry;
+
+// Command-related functions
+void dump_inv(Uint8 *name)
+{
+    Uint8 str[256];
+    int i, q;
+    int used = 0;
+    
+    send_pm("%s Current Inventory:", name);
+	for (i = 0; i < 36; i++) {
+         if(inv[i].quantity != 0)
+         {
+              used++;
+              q = (inv[i].quantity > 1) ? 1 : 0;
+              sprintf(str, "%d %s", inv[i].quantity, get_item_name(inv[i].id, q));
+              send_pm("%s %s", name, str);
+              str[0] = 0;
+         }
+	}
+	send_pm("%s %d EMU and %d inventory slots left",  name, (carry.b - carry.c), (36 - used)); 
+}
+
+void dump_equip(Uint8 *name)
+{
+    Uint8 str[256];
+    int i;
+    
+    send_pm("%s Current Equipment:", name);
+	for (i = 36; i < 44; i++) {
+         if(inv[i].quantity != 0)
+         {
+              sprintf(str, "%d %s", inv[i].quantity, get_item_name(inv[i].id, 0));
+              send_pm("%s %s", name, str);
+              str[0] = 0;
+         }
+	}
+}
+
 /******************************************/
 /*-------------Bag Handling---------------*/
 /******************************************/
@@ -393,7 +433,16 @@ void put_bag_on_ground(int bag_x, int bag_y, int id)
 #define LEG     6
 #define BOOT    7
 
+const char *EQ_LIST[8] = {
+      "helmet", "cape", "amulet",
+      "torso", "shield", "weapon",
+      "leg", "boots"
+};
+
 Uint16 equipment[8] = {0,0,0,0,0,0,0,0};
+
+Uint16 pickuplist[50];                  // 50 most important items.
+                                        // Implementation pending
 
 Uint16 eqlist[8][10] = {
        {    ITEM_IRON_HELMET,
@@ -431,12 +480,13 @@ Uint16 eqlist[8][10] = {
             ITEM_IRON_BROAD_SWORD,
             ITEM_IRON_SWORD    
        }, 
-       {    ITEM_LEATHER_PANTS,
+       {
             ITEM_IRON_CUISSES,
+            ITEM_LEATHER_PANTS,
             0,0,0,0,0,0,0,0},
-       {    ITEM_LEATHER_BOOTS,
-            ITEM_IRON_GREAVE
-            ,0,0,0,0,0,0,0,0}     
+       {    ITEM_IRON_GREAVE,
+            ITEM_LEATHER_BOOTS,
+            0,0,0,0,0,0,0,0}     
 };
 
 void parse_items()
