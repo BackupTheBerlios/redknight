@@ -105,7 +105,7 @@ void load_map(char * name)
 	 //create the tile map that will be used for pathfinding
 	 pf_tile_map = (PF_TILE *)calloc(tile_map_size_x*tile_map_size_y*6*6, sizeof(PF_TILE));
     		
-	for (x = 0; x < tile_map_size_x*6; x++) {
+	 for (x = 0; x < tile_map_size_x*6; x++) {
 	    for (y = 0; y < tile_map_size_y*6; y++) {
 	        i = y*tile_map_size_x*6+x;
 	        pf_tile_map[i].x = x;
@@ -235,10 +235,13 @@ int pf_find_path(int x, int y)
 	pf_src_tile = pf_get_tile(me->x_tile_pos, me->y_tile_pos);
 	pf_dst_tile = pf_get_tile(x, y);
 	
-	if (!pf_dst_tile || pf_dst_tile->z == 0) {
-        log_error("Invalid Destination!\n");
+	if (!pf_dst_tile) {
+        log_error("Invalid Destination Tile!\n");
 		return 0;
-	}
+	} else if (pf_dst_tile->z == 0) {
+        log_error("Invalid Destination Height @ %d, %d!\n", x, y);
+		return 0;
+    }
 	
 	for (i = 0; i < tile_map_size_x*tile_map_size_y*6*6; i++) {
 		pf_tile_map[i].state = PF_STATE_NONE;
@@ -361,6 +364,8 @@ int pf_move()
 			}
 		}
 	}
+	log_error("Fell through.");
+	return 0;
 }
 
 int pf_is_tile_occupied(int x, int y)
@@ -384,7 +389,7 @@ int timed_pf_move(Uint32 time)
      if(bot_map.cur_map == -1) return 1;
      
      if(pf_follow_path == 1) {
-         if(!pf_move()) log_info("Cannot move!");
+         if(pf_move() != 1) log_info("Cannot move!");
          return 1;        
      }
      else if(bot_map.map[bot_map.cur_map].id != CONFIG_NULL && pf_follow_path == 0) {

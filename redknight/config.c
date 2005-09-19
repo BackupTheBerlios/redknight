@@ -202,35 +202,34 @@ int load_list(struct CONFIG_LIST *list, char *file)
      {
           sprintf(error, "No such file: %s", file);             
           log_info(error);
-          return 0;
-     }
-     
-     
-     while(fgets(line, 256, f) && list->l < list->m) {
-          if(!list->list) {
-               cur = list->list = calloc(sizeof(struct CONFIG_NODE), 1);
-               cur->prev = list->list->prev = NULL;
-               cur->next = NULL;
-          }
-          else {
-               while(cur->next != NULL) cur = cur->next;
-               cur->next = calloc(sizeof(struct CONFIG_NODE), 1);
-               cur->next->prev = cur;
-               cur = cur->next;
-               cur->next = NULL;
-          }
-          for(i = 0; i < 30; i++) {
-                  line[i] = tolower(line[i]);
-          }
-          for(i = 0; line[i] != '\n' && line[i] != ' '; i++) {
+          // Don't return
+     } else {
+          while(fgets(line, 256, f) && list->l < list->m) {
+               if(!list->list) {
+                    cur = list->list = calloc(sizeof(struct CONFIG_NODE), 1);
+                    cur->prev = list->list->prev = NULL;
+                    cur->next = NULL;
+               }
+               else {
+                    while(cur->next != NULL) cur = cur->next;
+                    cur->next = calloc(sizeof(struct CONFIG_NODE), 1);
+                    cur->next->prev = cur;
+                    cur = cur->next;
+                    cur->next = NULL;
+               }
+               for(i = 0; i < 30; i++) {
+                   line[i] = tolower(line[i]);
+               }
+               for(i = 0; line[i] != '\n' && line[i] != ' '; i++) {
                    cur->data[i] = line[i];
+               }
+               cur->data[i] = '\0';
+               cur->len = i-1;
+               list->l++;
           }
-          cur->data[i] = '\0';
-          cur->len = i-1;
-          list->l++;
+          fclose(f);
+          return list->l;
      }
-     fclose(f);
-     return list->l;
 }
 
 void save_list(struct CONFIG_LIST *list, char *file)
@@ -362,12 +361,22 @@ int add_string(struct CONFIG_LIST *list, char * in_name, int len)
      lower_name[i] = '\0';
      
      strcpy(name, tolower(lower_name));
-     cur = list->list;
-     while(cur->next != NULL) cur = cur->next;
      
-     cur->next = malloc(sizeof(struct CONFIG_NODE));
-     cur->next->prev = cur;
-     cur = cur->next;
+     // Check if the file was empty
+     if(!list->list)
+     {
+          cur = list->list = calloc(sizeof(struct CONFIG_NODE), 1);
+          cur->prev = list->list->prev = NULL;
+          cur->next = NULL;
+     } else {
+          cur = list->list;
+     
+          while(cur->next != NULL) cur = cur->next;
+     
+          cur->next = malloc(sizeof(struct CONFIG_NODE));
+          cur->next->prev = cur;
+          cur = cur->next;
+     }
      
      strcpy(cur->data, name);
      cur->len = i;

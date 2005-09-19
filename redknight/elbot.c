@@ -79,31 +79,30 @@ void process_raw_text (const Uint8*data, int data_len) {
   
   strcpy (chat_seperator, ":");
 
-  if (debug >= DEBUG_MEDIUM) log_info ("%s\n", data);
-  if ((unsigned char) data[0] != 128 + c_red1) return;
+  if (debug >= DEBUG_MEDIUM) log_info ("%s\n", data+1);
+  if ((unsigned char) data[1] != 128 + c_red1) return;
   if (debug >= DEBUG_HIGH) log_info ("Looks like chat...\n");
 
-  if (strncasecmp (data+1, "[PM from ", 9) == 0) {
-  	PM=1;
+  if (strncasecmp (data+2, "[PM from ", 9) == 0) {
     len = strlen (boss_name);
-	loc = strstr(data, chat_seperator);
+	loc = strstr(data+2, chat_seperator);
 
 	if (debug >= DEBUG_HIGH) log_info ("I got a PM!\n");
 
   	/*len2 = loc-data- 10;
   	strncpy (chat_name, data+10, len2);
   	strcpy (chat_name+len2, "\0");*/
-  	for (len2 = 0; len2 < 16 && data[len2+10] != ':'; len2++) {
-			chat_name[len2] = data[len2+10];
+  	for (len2 = 0; len2 < 16 && data[len2+10+1] != ':'; len2++) {
+			chat_name[len2] = data[len2+10+1];
 		}
     chat_name[len2] = 0;
   	
   	if(!strcmp(my_name, chat_name))return; // Don't talk to myself
   	if (debug >= DEBUG_HIGH) log_info ("I've got %s\n", chat_name);
     
-	if(PM!=0) process_text_message(data+10+len2+2, chat_name, 1);
+	process_text_message(data+10+len2+2+1, chat_name, 1);
   }
-	if (data[0] == 136 && strstr(data+1, " wants to trade with you")) {
+  else if (data[0] == 136 && strstr(data+1, " wants to trade with you")) {
 		char *actor_name;
 		
 		actor_name = strstr(data+1, " wants to trade with you");
@@ -449,7 +448,7 @@ int self_timer(Uint32 time)
           }
     }
     // Check health
-    /*(matter.c < (matter.b/3))
+    if (matter.c < (matter.b/3))
     {
           // Cast restore - note this will be better supported later
           // when we'll check for essences, sigils, etc.
@@ -461,7 +460,7 @@ int self_timer(Uint32 time)
           
           send_raw_text("#gm I am below %d MP, so I am casting Restoration.", (matter.b/3));
           send_to_server(str, 4);
-    }*/
+    }
     
     return 1;   
 }
