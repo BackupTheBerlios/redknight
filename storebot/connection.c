@@ -20,7 +20,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdarg.h>
-#include <SDL_net.h>
+#include <SDL/SDL_net.h>
 #include "connection.h"
 #include "log.h"
 #include "elbot.h"
@@ -188,9 +188,13 @@ void handle_raw_text_from_server(Uint8 *data)
 	if (data[0] == 136 && strstr(data+1, " wants to trade with you")) {
 		char *actor_name;
 		
+		printf ("i got here\n");
 		actor_name = strstr(data+1, " wants to trade with you");
+		
 		*actor_name = 0;
 		actor_name = data+1;
+		
+		printf ("%s\n", actor_name);
 		
 		trade_with(actor_name);
 		return;
@@ -198,13 +202,15 @@ void handle_raw_text_from_server(Uint8 *data)
 }
 
 int process_message (unsigned char* data, int length) {
+	unsigned char* temp;
+	
     Uint8 command = data[0];
     data += 3;    // Handlers skip command
     
     switch (command) {
 	case RAW_TEXT:
  		printf("%s\n", data+1);
-		handle_raw_text_from_server(data);
+		handle_raw_text_from_server(data+1);
 		break;
 	case YOU_ARE:
 		me = *((short *)(data));
@@ -234,11 +240,13 @@ int process_message (unsigned char* data, int length) {
 		remove_inventory_item(data[0]);
 		break;
 	case GET_TRADE_ACCEPT:
+		printf ("Someone pressed accept!\n");
+		printf ("%d", data[0]);
 		if (data[0]) {
-			trade.he_accepted = 1;
+			trade.he_accepted++;
 			update_trade();
 		} else {
-			trade.we_accepted = 1;
+			trade.we_accepted++;
 		}
 		break;
 	case GET_TRADE_REJECT:
@@ -253,21 +261,27 @@ int process_message (unsigned char* data, int length) {
 		check_inventory();
 		break;
 	case GET_TRADE_OBJECT:
-		if (data[7]) {
-			get_trade_object(data[6], *((Uint16 *)(data)), *((Uint32 *)(data+2)));
+		if /* (data[7]) */ (data[8]) {
+			/*
+				data[6] is type attribute
+				data[7] is pos atribbute
+			*/
+			get_trade_object(/* data[6] */ data[7], *((Uint16 *)(data)), *((Uint32 *)(data+2)));
 		}
 		break;
 	case REMOVE_TRADE_OBJECT:
-		if (data[3]) {
-			remove_trade_object(data[2], *((Uint16 *)(data)));
+		if /* (data[3]) */ (data[5]) {
+			/* remove_trade_object(data[2], *((Uint16 *)(data))); */
+			remove_trade_object (data[4], *((Uint32*)(data)));
 		}
 		break;
 	case GET_YOUR_TRADEOBJECTS:
 		get_inventory_from_server(data);
 		break;
 	case GET_TRADE_PARTNER_NAME:
-		data[length] = 0;
-		activate_trade(data);
+		temp = data +1; /* Skip storage_available */
+		temp[length] = 0; /* ?! Isn't this outside of data range? */
+		activate_trade(temp); /* Should pass the address of begining of partner name */
 		break;
 	case LOG_IN_OK:
          logged_in  = 1;
@@ -279,6 +293,7 @@ int process_message (unsigned char* data, int length) {
 		fprintf(stderr, "ERROR: Invalid username\n");
 		die();
 	default: // ignore it
+		break;
 	}
 	return 1;
 }
@@ -362,4 +377,3 @@ void send_pm (unsigned char *fmt, ...) {
 
   send_to_server (msg, strlen(msg+1) + 2);
 }
-

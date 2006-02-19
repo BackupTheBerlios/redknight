@@ -234,16 +234,26 @@ int get_item_id(char *name)
 
 void get_inventory_from_server(Uint8 *data)
 {
-	int i, pos, total_inv = data[0];
+	int i, pos, total_inv = data[0]; /* data[0] = no_items */
+	
+	data++;
 	
 	for (i = 0; i < 36+8; i++) {
 		inv[i].quantity = 0;
 	}
 	
+	/*
 	for(i = 0; i < total_inv; i++) {
 		pos = data[i*8+7];
 		inv[pos].id = *((Uint16 *)(data+i*8+1));
 		inv[pos].quantity = *((Uint32 *)(data+i*8+3));
+	}
+	*/
+	
+	for(i = 0; i < total_inv; i++) {
+		pos = data[i*8+6];
+		inv[pos].id = *((Uint16 *)(data+i*8));
+		inv[pos].quantity = *((Uint32 *)(data+i*8+2));
 	}
 }
 
@@ -251,7 +261,7 @@ void get_new_inventory_item_from_server(Uint8 *data)
 {
 	int pos;
 		
-	pos = data[6];
+	pos = data[6]; /* This one is ok i guess */
 	inv[pos].id = *((Uint16 *)(data));
 	inv[pos].quantity = *((Uint32 *)(data+2));
 

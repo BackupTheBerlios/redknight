@@ -46,7 +46,7 @@ void finalize_trade();
 void end_trade();
 void abort_trade();
 void get_trade_object(int pos, Uint16 id, Uint32 quantity);
-void remove_trade_object(int pos, Uint16 quantity);
+void remove_trade_object(int pos, Uint32 quantity);
 int get_buy_price(int id);
 int get_sell_price(int id, int use_guild_price);
 void put_object_on_trade(int pos, Uint16 quantity);

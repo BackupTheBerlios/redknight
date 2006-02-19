@@ -13,6 +13,9 @@
 #include "config.h"
 #include "trade.h"
 
+#define ITEM_INVENTORY 1 /* Is this ok!? */
+#define ITEM_BANK 2
+
 ITEM new_inv_a[36];
 ITEM new_inv_b[36];
 
@@ -20,16 +23,19 @@ TRADE_INFO trade;
 
 void trade_with(char *name)
 {
-    Uint8 str[8]; 
-	int id = get_actor_by_name(name);
+	Uint8 str[7];
 	
-	if (id == -1) {
+	Uint32 player_id = get_actor_by_name (name);
+	
+	if (player_id == -1)
+	{
 		return;
 	}
 	
-	str[0] = TRADE_WITH;
-	*((int *)(str+1)) = id;
-	send_to_server(str, 5);
+	str[0]=TRADE_WITH;
+	*((Uint32*)(str+1)) = player_id;
+	
+	send_to_server (str, 7);
 }
 
 void activate_trade(char *trade_partner)
@@ -291,7 +297,7 @@ void get_trade_object(int pos, Uint16 id, Uint32 quantity)
 	update_trade();
 }
 
-void remove_trade_object(int pos, Uint16 quantity)
+void remove_trade_object(int pos, Uint32 quantity)
 {
 	trade.his_list[pos].quantity -= quantity;
 	update_trade();
@@ -326,12 +332,15 @@ int get_sell_price(int id, int use_guild_price)
 void put_object_on_trade(int pos, Uint16 quantity)
 {
 	int i;
-	Uint8 str[8];
 
-	str[0] = PUT_OBJECT_ON_TRADE;
-	str[1] = pos;
-	*((Uint16 *)(str+2)) = quantity;
-	send_to_server(str, 4);
+	Uint8 str[7];
+	
+	str[0]=PUT_OBJECT_ON_TRADE;
+	*((Uint8*)(str+1)) = ITEM_INVENTORY; /* ^^ */
+	*((Uint8*)(str+2)) = pos; //The position in either your inventory or your bank
+	*((Uint32*)(str+3)) = quantity;
+	
+	send_to_server (str, 7);
 	
 	for (i = 0; i < 16; i++) {
 		if (trade.our_list[i].id == inv[pos].id
@@ -353,12 +362,13 @@ void put_object_on_trade(int pos, Uint16 quantity)
 
 void remove_object_from_trade(int pos, Uint16 quantity)
 {
-    Uint8 str[8]; 
-     
+    Uint8 str[6];
+
 	str[0] = REMOVE_OBJECT_FROM_TRADE;
-	str[1] = pos;
-	*((Uint16 *)(str+2)) = quantity;
-	send_to_server(str, 4);
+	*((Uint8*)(str+1))=pos;
+	*((Uint32*)(str+2))=quantity;
+        
+	send_to_server(str, 6);
 	
 	trade.our_list[pos].quantity -= quantity;
 }
@@ -591,16 +601,30 @@ void check_inventory()
 
 void accept_trade()
 {
-    Uint8 str[4];
-     
+	Uint8 str[18];
+	int i;
+	
 	str[0] = ACCEPT_TRADE;
-	send_to_server(str, 1);
+	
+	if(trade.we_accepted == 0)
+	{
+		*((Uint16*)(str+1)) = 1;
+		send_to_server(str, 3);
+		return;
+	} else {
+		*((Uint16*)(str+1))=17;
+		for(i = 0; i < 16; i++){
+			*((Uint8*)(str+3+i))=1;
+		}
+	}
+	
+	send_to_server(str, 18);
 }
 
 void reject_trade()
 {
-    Uint8 str[4];
-     
+	Uint8 str[1];
+
 	str[0] = REJECT_TRADE;
-	send_to_server(str, 1); 
+	send_to_server (str, 1);
 }

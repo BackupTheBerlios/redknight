@@ -213,7 +213,7 @@ int main(int argc, char **argv)
 		
 		// send a heartbeat every 25 seconds
 		if (cur_time-(25 * 1000) >= last_heartbeat) {
-            Uint8 str[4]; 
+            Uint8 str[1]; 
             str[0] = HEART_BEAT;           
 			send_to_server(str, 1);
 			
