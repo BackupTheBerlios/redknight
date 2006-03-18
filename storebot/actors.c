@@ -13,9 +13,10 @@ ACTOR *actor_list[MAX_ACTORS];
 int max_actor_id = 0;
 int me = 0;
 
-void add_actor(int id, char *name, short x, short y)
+void add_actor(int id, Uint8 *name, short x, short y)
 {
-	char *ptr;
+	Uint8 *ptr = NULL;
+	int i;
 	
 	if (id > MAX_ACTORS) {	
 		return;
@@ -26,7 +27,18 @@ void add_actor(int id, char *name, short x, short y)
 	actor_list[id] = (ACTOR *)safe_malloc(sizeof(ACTOR));
 	actor_list[id]->x = x;
 	actor_list[id]->y = y;
-	if ((ptr = strchr(name, 0x8f))) {
+	
+	// 25 doesn't really mean anything;  it's just a safety net, in case something goes wrong.
+	for (i = 0; i < 25 && name[i] != '\0'; i++) {
+		// Color is no longer a given; but a color character is.
+		if (name[i] >= 127)
+		{
+			ptr = name+i;
+			break;
+		}
+	}
+	
+	if (ptr != NULL) {
 		// This player is in a guild
 		*--ptr = 0;
 		actor_list[id]->name = (char *)safe_malloc(strlen(name)+1);
@@ -72,6 +84,7 @@ int get_actor_by_name(const char *name)
 		if (!actor_list[i]) {
 			continue;
 		}
+
 		if (!strcasecmp(name, actor_list[i]->name)) {
 			return i;
 		}

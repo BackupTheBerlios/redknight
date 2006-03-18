@@ -16,7 +16,7 @@ extern ACTOR *actor_list[MAX_ACTORS];
 extern int max_actor_id;
 extern int me;
 
-void add_actor(int id, char *name, short x, short y);
+void add_actor(int id, Uint8 *name, short x, short y);
 void destroy_actor(int id);
 void destroy_all_actors();
 int get_actor_by_name(const char *name);
