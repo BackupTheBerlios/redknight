@@ -17,10 +17,10 @@ int check_if_we_should_hail (const Uint8 *data, int gender) {
   
   memset (name, 0, 40);
   memset (guild, 0, 5);
-  for (i = 0; i < len; i++)
-    /* 143 is the colour code for dark yellow, the colour in which the guild tag
-     * is printed */
-    if ((unsigned char) data[i] == 143) break;
+  for (i = 1; i < len; i++)
+    /* All colours after the first character must be the guild. 
+       (We can skip char 1). */
+    if ((unsigned char) data[i] >= 127) break;
   if (i >= len)j= i > 40 ? 40-1 : i;
   else j= i > 40 ? 40-1 : i-1;
   strncpy (name, data, j);

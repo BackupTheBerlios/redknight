@@ -6,6 +6,7 @@
 #include "elbot.h"
 #include "items.h"
 
+int open_bag_id = -1;
 ITEM inv[36+8];
 
 ITEM_NAME item_name_list[] = {
@@ -206,219 +207,6 @@ ITEM_NAME item_name_list[] = {
     { ITEM_UNKNOWN, NULL, NULL }
 };
 
-char *get_item_name(int id, int plural)
-{
-	int i;
-	
-	for (i = 0; item_name_list[i].id != ITEM_UNKNOWN; i++) {
-		if (item_name_list[i].id == id) {
-			return plural ? item_name_list[i].name_plural : item_name_list[i].name;
-		}
-	}
-	
-	return NULL;
-}
-
-int get_item_id(char *name)
-{
-	int i;
-	
-	for (i = 0; item_name_list[i].id != ITEM_UNKNOWN; i++) {
-		if (!strcasecmp(item_name_list[i].name, name) || !strcasecmp(item_name_list[i].name_plural, name)) {
-			return item_name_list[i].id;
-		}
-	}
-	
-	return ITEM_UNKNOWN;
-}
-
-void get_inventory_from_server(Uint8 *data)
-{
-	int i, pos, total_inv = data[0];
-	
-	for (i = 0; i < 36+8; i++) {
-		inv[i].quantity = 0;
-	}
-	
-	for(i = 0; i < total_inv; i++) {
-		pos = data[i*8+7];
-		inv[pos].id = *((Uint16 *)(data+i*8+1));
-		inv[pos].quantity = *((Uint32 *)(data+i*8+3));
-	}
-	parse_items();        // Find out our equipment
-}
-
-void get_new_inventory_item_from_server(Uint8 *data)
-{
-	int pos;
-		
-	pos = data[6];
-	inv[pos].id = *((Uint16 *)(data));
-	inv[pos].quantity = *((Uint32 *)(data+2));
-    equip_item(pos);  // Check if we can equip it
-//	if (!trade.verified) {
-//		check_inventory();
-//	}
-}
-
-void remove_inventory_item(int pos)
-{
-	inv[pos].quantity = 0;
-	if(pos >= 36)
-	{
-        unequip_item(pos);
-    }
-//	if (!trade.verified) {
-//		check_inventory();
-//	}
-}
-
-
-// Maybe this should go in a struct...
-extern att16 carry;
-
-// Command-related functions
-void dump_inv(Uint8 *name)
-{
-    Uint8 str[256];
-    int i, q;
-    int used = 0;
-    
-    send_pm("%s Current Inventory:", name);
-	for (i = 0; i < 36; i++) {
-         if(inv[i].quantity != 0)
-         {
-              used++;
-              q = (inv[i].quantity > 1) ? 1 : 0;
-              sprintf(str, "%d %s", inv[i].quantity, get_item_name(inv[i].id, q));
-              send_pm("%s %s", name, str);
-              str[0] = 0;
-         }
-	}
-	send_pm("%s %d EMU and %d inventory slots left",  name, (carry.b - carry.c), (36 - used)); 
-}
-
-void dump_equip(Uint8 *name)
-{
-    Uint8 str[256];
-    int i;
-    
-    send_pm("%s Current Equipment:", name);
-	for (i = 36; i < 44; i++) {
-         if(inv[i].quantity != 0)
-         {
-              sprintf(str, "%d %s", inv[i].quantity, get_item_name(inv[i].id, 0));
-              send_pm("%s %s", name, str);
-              str[0] = 0;
-         }
-	}
-}
-
-/******************************************/
-/*-------------Bag Handling---------------*/
-/******************************************/
-
-struct BAG bags_list[200];
-ITEM bag[50];
-Uint16 no_bags = 0;
-
-
-
-// First function using SDL functionality
-void add_bag_list(Uint8 *data)
-{
-     int i, o, id;
-     
-     no_bags = data[0];
-     for(i = 0; i < no_bags; i++) {
-           o = i * 5 + 1;
-           id = *((Uint8 *) (data + 4 + o));  
-           if(id >= 200) continue;       
-           bags_list[id].x = SDL_SwapLE16(*((Uint16 *) (data + o)));
-           bags_list[id].y = SDL_SwapLE16(*((Uint16 *) (data + 2 + o)));
-     }
-}
-
-void remove_item_from_ground(Uint8 pos)
-{
-	bag[pos].quantity = 0;
-}
-
-void remove_bag(Uint16 bag)
-{
-     // Make it inaccessible
-     bags_list[bag].x = -1;
-     bags_list[bag].y = -1;
-}
-
-void open_bag(Uint16 bag)
-{
-	Uint8 str[4];
-
-    str[0] = INSPECT_BAG;
-    str[1] = bag;
-    send_to_server(str,2);
-    return;
-}
-
-void get_bag_item(Uint8 *data)
-{
-	int	pos;
-	
-	pos = data[6];
-	bag[pos].id = SDL_SwapLE16(*((Uint16 *) (data)));
-	bag[pos].quantity = SDL_SwapLE32(*((Uint32 *) (data + 2)));
-}
-
-void get_bags_items_list(Uint8 *data)
-{
-     int i, j, k;
-     int pos, no_items, o;
-     
-     for(i = 0; i < 50; i++) bag[i].quantity = 0;
-     
-     no_items = data[0];
-     for(i = 0; i < no_items; i++) {      
-           o = i * 7 + 1;
-           pos = data[o + 6];
-           bag[pos].id = SDL_SwapLE16(*((Uint16 *) (data + o)));
-           bag[pos].quantity = SDL_SwapLE16(*((Uint16 *) (data + 2 + o )));
-     }
-     // Now, react to it...
-     k = 0;
-     // If we can pick it up ...
-     for(j = 0; j < 36; j++) {
-          if(inv[j].quantity == 0)
-          {
-               // Pick up one item
-               for(; k < 50; k++) {
-                    if(bag[k].quantity > 0)
-                    {
-                         pick_item(k, bag[k].quantity);
-                    }
-               }
-          }
-     }
-}
-
-void pick_item(Uint16 pos, Uint16 quantity)
-{
-     Uint8 str[10];
-     
-     str[0] = PICK_UP_ITEM;
-     str[1] = pos;
-     *((Uint16 *) (str + 2)) = SDL_SwapLE16((Uint16) quantity);
-	 send_to_server(str,4);
-}
-
-void put_bag_on_ground(int bag_x, int bag_y, int id)
-{
-     if(id >= 200) return;       
-     bags_list[id].x = bag_x;
-     bags_list[id].y = bag_y;
-     no_bags++;
-}
-     
 /******************************************/
 /*-----------Equipment section------------*/
 /******************************************/
@@ -443,6 +231,64 @@ Uint16 equipment[8] = {0,0,0,0,0,0,0,0};
 
 Uint16 pickuplist[50];                  // 50 most important items.
                                         // Implementation pending
+// Not configurable... yet.
+int pickup_check(Uint16 item)
+{
+	switch (item) {
+		case ITEM_BREAD:
+		case ITEM_MEAD:
+		case ITEM_WINE:
+		case ITEM_ALE:
+		case ITEM_EMPTY_VIAL:
+		case ITEM_FLOWER_SUNFLOWER:
+		case ITEM_FLOWER_BLUE_STAR_FLOWER:
+		case ITEM_FLOWER_IMPATIENS:
+		case ITEM_FLOWER_CHRYSANTHEMUMS:
+		case ITEM_FLOWER_TIGER_LILLY:
+		case ITEM_FLOWER_YELLOW_ROSE:
+		case ITEM_FLOWER_RED_ROSE:
+		case ITEM_FLOWER_BLACK_ROSE:
+		case ITEM_FLOWER_WHITE_ASIATIC_LILLY:
+		case ITEM_FLOWER_BLUE_LUPINE:
+		case ITEM_FLOWER_RED_SNAPDRAGONS:
+		case ITEM_FLOWER_LILACS:
+		case ITEM_FLOWER_SWAMP_CANDLES:
+		case ITEM_QUARTZ:
+		case ITEM_BLUE_QUARTZ:
+		case ITEM_ROSE_QUARTZ:
+		case ITEM_MERCURY:
+		case ITEM_SULPHUR:
+		case ITEM_SILVER_ORE:
+		case ITEM_GOLD_ORE:
+		case ITEM_IRON_ORE:
+		case ITEM_COAL:
+		case ITEM_MORTAR_AND_PESTLE:
+		case ITEM_BONE:
+		case ITEM_CACTUS:
+		case ITEM_RAW_MEAT:
+		case ITEM_DEER_SKIN:
+		case ITEM_DEER_FUR:
+		case ITEM_WOLF_FUR:
+		case ITEM_BEAR_FUR:
+		case ITEM_DEER_ANTLERS:
+		case ITEM_BONE_POWDER:
+		case ITEM_WHITE_RABBIT_FUR:
+		case ITEM_BROWN_RABBIT_FUR:
+		case ITEM_COOKED_MEAT:
+		case ITEM_GREEN_SNAKE_SKIN:
+		case ITEM_RED_SNAKE_SKIN:
+		case ITEM_BROWN_SNAKE_SKIN:
+		case ITEM_FOX_FUR:
+		case ITEM_PUMA_FUR:
+		case ITEM_NEEDLE:
+		case ITEM_WARM_FUR_GLOVES:
+		case ITEM_FOX_SCARF:
+		case ITEM_FUR_HAT:
+		case ITEM_FUR_CLOAK:
+					return 0;
+		default:	return 1;
+	}
+}
 
 Uint16 eqlist[8][10] = {
        {    ITEM_IRON_HELMET,
@@ -580,3 +426,258 @@ void unequip_item(Uint8 pos)
            if(equipment[i] == pos) equipment[i] = 0;       // Reset it
      }
 }
+
+
+char *get_item_name(int id, int plural)
+{
+	int i;
+	
+	for (i = 0; item_name_list[i].id != ITEM_UNKNOWN; i++) {
+		if (item_name_list[i].id == id) {
+			return plural ? item_name_list[i].name_plural : item_name_list[i].name;
+		}
+	}
+	
+	return NULL;
+}
+
+int get_item_id(char *name)
+{
+	int i;
+	
+	for (i = 0; item_name_list[i].id != ITEM_UNKNOWN; i++) {
+		if (!strcasecmp(item_name_list[i].name, name) || !strcasecmp(item_name_list[i].name_plural, name)) {
+			return item_name_list[i].id;
+		}
+	}
+	
+	return ITEM_UNKNOWN;
+}
+
+void get_inventory_from_server(Uint8 *data)
+{
+	int i, pos, total_inv = data[0];
+	
+	for (i = 0; i < 36+8; i++) {
+		inv[i].quantity = 0;
+	}
+	
+	for(i = 0; i < total_inv; i++) {
+		pos = data[i*8+7];
+		inv[pos].id = *((Uint16 *)(data+i*8+1));
+		inv[pos].quantity = *((Uint32 *)(data+i*8+3));
+	}
+	parse_items();        // Find out our equipment
+}
+
+void get_new_inventory_item_from_server(Uint8 *data)
+{
+	int pos;
+		
+	pos = data[6];
+	inv[pos].id = *((Uint16 *)(data));
+	inv[pos].quantity = *((Uint32 *)(data+2));
+    equip_item(pos);  // Check if we can equip it
+//	if (!trade.verified) {
+//		check_inventory();
+//	}
+}
+
+void remove_inventory_item(int pos)
+{
+	inv[pos].quantity = 0;
+	if(pos >= 36)
+	{
+        unequip_item(pos);
+    }
+//	if (!trade.verified) {
+//		check_inventory();
+//	}
+}
+
+
+// Maybe this should go in a struct...
+extern att16 carry;
+
+// Command-related functions
+void dump_inv(Uint8 *name)
+{
+    Uint8 str[256];
+    int i, q;
+    int used = 0;
+    
+    send_pm("%s Current Inventory:", name);
+	for (i = 0; i < 36; i++) {
+         if(inv[i].quantity != 0)
+         {
+              used++;
+              q = (inv[i].quantity > 1) ? 1 : 0;
+              sprintf(str, "#%d %d %s", i, inv[i].quantity, get_item_name(inv[i].id, q));
+              send_pm("%s %s", name, str);
+              str[0] = 0;
+         }
+	}
+	send_pm("%s %d EMU and %d inventory slots left",  name, (carry.b - carry.c), (36 - used)); 
+}
+
+void drop_slot(Uint8 slot)
+{
+     Uint8 str[6];
+     
+     if (inv[slot].quantity == 0)
+     {
+          return;
+     }
+     
+     str[0]=DROP_ITEM;
+	 str[1]=slot;
+	 *((Uint32 *)(str+2))=SDL_SwapLE32(inv[slot].quantity);
+     
+     send_to_server(str, 6);
+}
+
+
+void dump_equip(Uint8 *name)
+{
+    Uint8 str[256];
+    int i;
+    
+    send_pm("%s Current Equipment:", name);
+	for (i = 36; i < 44; i++) {
+         if(inv[i].quantity != 0)
+         {
+              sprintf(str, "%d %s", inv[i].quantity, get_item_name(inv[i].id, 0));
+              send_pm("%s %s", name, str);
+              str[0] = 0;
+         }
+	}
+}
+
+
+
+/******************************************/
+/*-------------Bag Handling---------------*/
+/******************************************/
+
+struct BAG bags_list[200];
+ITEM bag[50];
+Uint16 no_bags = 0;
+
+
+void pick_item(Uint16 pos, Uint16 quantity)
+{
+     Uint8 str[10];
+     
+     str[0] = PICK_UP_ITEM;
+     str[1] = pos;
+     *((Uint16 *) (str + 2)) = SDL_SwapLE16((Uint16) quantity);
+	 send_to_server(str,4);
+}
+
+// First function using SDL functionality
+void add_bag_list(Uint8 *data)
+{
+     int i, o, id;
+     
+     no_bags = data[0];
+     for(i = 0; i < no_bags; i++) {
+           o = i * 5 + 1;
+           id = *((Uint8 *) (data + 4 + o));  
+           if(id >= 200) continue;       
+           bags_list[id].x = SDL_SwapLE16(*((Uint16 *) (data + o)));
+           bags_list[id].y = SDL_SwapLE16(*((Uint16 *) (data + 2 + o)));
+     }
+}
+
+void remove_item_from_ground(Uint8 pos)
+{
+	bag[pos].quantity = 0;
+}
+
+void remove_bag(Uint16 bag)
+{
+     // Make it inaccessible
+     bags_list[bag].x = -1;
+     bags_list[bag].y = -1;
+}
+
+void open_bag(Uint16 bag)
+{
+    Uint8 str[4];
+
+    str[0] = INSPECT_BAG;
+    str[1] = bag;
+    send_to_server(str,2);
+    open_bag_id = bag;
+    return;
+}
+
+void get_bag_item(Uint8 *data)
+{
+	int	pos;
+	
+	pos = data[6];
+	bag[pos].id = SDL_SwapLE16(*((Uint16 *) (data)));
+	bag[pos].quantity = SDL_SwapLE32(*((Uint32 *) (data + 2)));
+}
+
+int get_bags_items_list(Uint8 *data)
+{
+     int i, j, k;
+     int pos, no_items, o, used;
+     
+     for(i = 0; i < 50; i++) bag[i].quantity = 0;
+     
+     no_items = data[0];
+     for(i = 0; i < no_items; i++) {      
+           o = i * 7 + 1;
+           pos = data[o + 6];
+           bag[pos].id = SDL_SwapLE16(*((Uint16 *) (data + o)));
+           bag[pos].quantity = SDL_SwapLE16(*((Uint16 *) (data + 2 + o )));
+     }
+	
+     // Now, react to it...
+     k = 0;
+	
+     // If we can pick it up ...
+     for(j = 0; j < 36; j++) {
+          if(inv[j].quantity == 0)
+          {
+               // Pick up one item
+               for(; k < 50; k++) {
+                    if(bag[k].quantity > 0)
+                    {
+					// Check if it's junk.
+					if(pickup_check(bag[k].id) == 1)
+                         {
+						pick_item(k, bag[k].quantity);
+						break;
+					}
+                    }
+               }
+          }
+     }
+	 
+	// Remove this bag from the list, so we don't reprocess.
+	remove_bag(open_bag_id);
+	open_bag_id = -1;
+	 
+	used = 0;
+	for(j = 0; j < 36; j++) {
+	     if(inv[j].quantity > 0)
+		     used++;
+	}
+	
+	if(used >= 36)
+	     return 1;
+     return 0;
+}
+
+void put_bag_on_ground(int bag_x, int bag_y, int id)
+{
+     if(id >= 200) return;       
+     bags_list[id].x = bag_x;
+     bags_list[id].y = bag_y;
+     no_bags++;
+}
+     

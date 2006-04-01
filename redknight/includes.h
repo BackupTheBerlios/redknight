@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <SDL_net.h>
+#include <SDL_types.h>
 #include "client_serv.h"
 #include "initvars.h"
 #include "actors.h"

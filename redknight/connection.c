@@ -35,6 +35,9 @@ unsigned char msgbuf[BUF_SIZE];
 int buf_in_use;
 unsigned char logged_in;
 
+void disable_bags();
+
+
 /* Structures that hold the connection */
 SDLNet_SocketSet theset;
 TCPsocket thesock;
@@ -150,7 +153,7 @@ int process_message (unsigned char* msg, int len) {
 		remove_inventory_item(msg[3]);
 	    break;
   // Trade Stuff
-  case GET_TRADE_ACCEPT:
+  /*case GET_TRADE_ACCEPT:
 		if (msg[3]) {
 			trade.he_accepted = 1;
 			accept_trade();
@@ -185,19 +188,24 @@ int process_message (unsigned char* msg, int len) {
 	case GET_TRADE_PARTNER_NAME:
 		msg[3+len] = 0;
 		activate_trade(msg+3);
-		break;
+		break;*/
   // Bag Stuff
 	case GET_NEW_BAG:
          put_bag_on_ground(SDL_SwapLE16(*((Uint16 *)(msg+3))), SDL_SwapLE16(*((Uint16 *)(msg+5))),*((Uint8 *)(msg+7)));
          break;
 	case GET_BAGS_LIST:
-         add_bag_list(&msg[3]);
+           add_bag_list(&msg[3]);
 		 break;
 	case GET_NEW_GROUND_ITEM:
 		 get_bag_item(msg+3);
 		 break;
     case HERE_YOUR_GROUND_ITEMS:
-		 get_bags_items_list(&msg[3]);
+		 if(get_bags_items_list(&msg[3]) == 1)
+		 {
+              // We have no room - Broadcast;
+              send_raw_text("#gm Trying to pick up bags, but full. Bag handling disabled until relieved.");
+              disable_bags();
+           }
 		 break;
     case CLOSE_BAG:
 		 // Destroy Bag Contents

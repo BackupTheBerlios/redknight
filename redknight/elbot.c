@@ -49,6 +49,11 @@ char pubgreet1[50], pubgreet2[50], pubgreet3[50];
 int debug = -1;
 int hail_master, hail_everyone, hail_guild, insult_enemy;
 unsigned short int verbose = 0;     // Verbose mode 0|1
+unsigned short handle_bags = 1;
+
+struct TIMER *heartbeatptr, *storyptr, *guildmapptr, *pf_moveptr, *selfptr;
+Uint32 bag_time = 0;
+extern Uint8 junk_flags[36];
 
 /* The connection: host name and port number */
 char *hostname = "eternal-lands.solexine.fr";
@@ -67,6 +72,20 @@ char name[40], guild[5];
 /* Function Prototypes */
 void process_text_message(const char *msg, char *chat_name, int PM); 
 
+void disable_bags()
+{
+     handle_bags = 0;     
+}
+
+void enable_bags()
+{
+     handle_bags = 1;     
+}
+
+void alt_bags()
+{
+     handle_bags = 2;
+}
 
 void process_raw_text (const Uint8*data, int data_len) {
   int len;
@@ -102,7 +121,7 @@ void process_raw_text (const Uint8*data, int data_len) {
     
 	process_text_message(data+10+len2+2+1, chat_name, 1);
   }
-  else if (data[0] == 136 && strstr(data+1, " wants to trade with you")) {
+  /*else if (data[0] == 136 && strstr(data+1, " wants to trade with you")) {
 		char *actor_name;
 		
 		actor_name = strstr(data+1, " wants to trade with you");
@@ -113,7 +132,7 @@ void process_raw_text (const Uint8*data, int data_len) {
 		
 		trade_with(actor_name);
 		return;
-	}
+	}*/
 }
 
 
@@ -178,7 +197,7 @@ void process_text_message(const char *msg, char *chat_name, int PM) {
       
           if((!strncmp(data, "story", 5))) {
                // Dump story info
-               strcpy(text, dump_story());     // A lot of the info is global, or 
+               strcpy(text, (char *)dump_story());     // A lot of the info is global, or 
                                                // shouldn't be...
                send_pm_enhanced(text, chat_name);
                return;
@@ -283,6 +302,21 @@ void process_text_message(const char *msg, char *chat_name, int PM) {
                    send_pm("%s Guilds protected: %s", chat_name, print_list(&A_guild, buffer));
                    return;
                }
+               if((!strncmp(data,"drop",4)) && data[4] == ' ' && data[5] != '\0') {
+                   drop_slot(atoi(data+5));
+                   bag_time = SDL_GetTicks() + 32000;  // Ignore them for 32 seconds
+                   pseudo_pf_find_path(72, 37);        // HACK
+                   enable_bags();
+                   return;
+               }
+			   if((!strncmp(data,"off",3))) {
+                   disable_bags();
+                   return;
+               }
+			   if((!strncmp(data,"on",2))) {
+                   enable_bags();
+                   return;
+               }
            }          
       }               
       // Don't understand:
@@ -299,7 +333,7 @@ void process_text_message(const char *msg, char *chat_name, int PM) {
         // Local Chat - TODO
         data++;  // Skip color
     } 
-    free(data);       
+    free(data);
 }
 
 
@@ -367,9 +401,6 @@ void proc_stat(Uint8 stat, Sint32 value)
    }
 }
 
-
-struct TIMER *heartbeatptr, *storyptr, *guildmapptr, *pf_moveptr, *selfptr;
-
 // Main Timer wrappers
 Uint32 last_heart_beat;
 Uint8 heartbeat = HEART_BEAT;
@@ -402,12 +433,22 @@ int guildmap_timer(Uint32 time)
               return 1; // Can't do anything without it
          }
          // Are we near a bag ? 
-         for(i = 0; i < no_bags; i++) {
-              if(PF_DIFF(me->x_tile_pos, bags_list[i].x) < 3 && PF_DIFF(me->y_tile_pos, bags_list[i].y) < 3)
-              {
-                   open_bag(i);
-                   return 1;
-              }
+         // HACK
+         #define BAG_X 72
+         #define BAG_Y 53
+         if (bag_time < time && handle_bags > 0 && first_node == NULL)
+         {
+            if (handle_bags == 1)
+            {
+                bag_time = time+2000;
+                for(i = 0; i < no_bags; i++) {
+                    if(PF_DIFF(me->x_tile_pos, bags_list[i].x) < 3 && PF_DIFF(me->y_tile_pos, bags_list[i].y) < 3)
+                    {
+                        open_bag(i);
+                        return 1;
+                    }
+                }
+            }
          }
          if(first_node != NULL)
          {        

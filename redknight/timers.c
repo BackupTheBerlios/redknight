@@ -12,7 +12,6 @@
 // GLOBAL VARIABLES
 struct TIMER *timer = NULL;
 
-
 // Take the time as an argument. Good for debugging
 void timer_loop(Uint32 time)
 {

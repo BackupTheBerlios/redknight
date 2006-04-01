@@ -1,7 +1,7 @@
 [Project]
 FileName=redknight.dev
 Name=Red Knight
-UnitCount=30
+UnitCount=28
 Type=1
 Ver=1
 ObjFiles=
@@ -291,16 +291,6 @@ BuildCmd=
 FileName=asc.c
 CompileCpp=0
 Folder=SRC-ELbot
-Compile=1
-Link=1
-Priority=1000
-OverrideBuildCmd=0
-BuildCmd=
-
-[Unit29]
-FileName=trade.h
-CompileCpp=0
-Folder=Red Knight/SRC-ELbot
 Compile=1
 Link=1
 Priority=1000
