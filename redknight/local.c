@@ -1,5 +1,9 @@
 #include "includes.h"
 #include "local.h"
+#include "hash.h"
+#include "hash_ext.h"
+
+extern hashp pallies, gallies, admins;
 
 // Keep duplication down
 void hail_guildmember(char *name, char *guild, int gender)
@@ -41,16 +45,12 @@ int check_if_we_should_hail (const Uint8 *data, int gender) {
   else {
   	if (strcasecmp(my_guild, guild)) { 
 		if (hail_everyone == 1 || (bot_map.map[bot_map.cur_map].id == CONFIG_NULL && hail_everyone == 2)) {
-  			if(get_string(&A_guild, guild, strlen(guild)) != -1)
+  		  if(hashl_chk(gallies, guild) == 1 || hashl_chk(pallies, name) == 1)
             {
                  hail_guildmember(name, guild, gender);
                  return 0;
             }
-  			if(get_string(&A_player, name, strlen(name)) != -1)
-            {
-                 hail_guildmember(name, guild, gender);
-                 return 0;
-            }  			
+		
             send_raw_text("%s! %s", name, greet_message);  //Greeting, name, greeting message
   			return 1;          //Kill them
 		}

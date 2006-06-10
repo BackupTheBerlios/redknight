@@ -32,14 +32,14 @@ struct CONFIG_LIST {
        int l; // Number of nodes
        int m; // Max number of nodes
 };
-extern struct CONFIG_LIST admin, A_player, A_guild;
+//extern struct CONFIG_LIST admin, A_player, A_guild;
 
 
 // PROTOTYPES
-int load_list(struct CONFIG_LIST *list, char *file);
+/*int load_list(struct CONFIG_LIST *list, char *file);
 int get_string(struct CONFIG_LIST *list, char * in_name, int len);
 int add_string(struct CONFIG_LIST *list, char * in_name, int len);
-int remove_string(struct CONFIG_LIST *list, char * in_name, int len);
+int remove_string(struct CONFIG_LIST *list, char * in_name, int len);*/
 void examine_map(char *name);
 
 #endif

@@ -5,14 +5,14 @@ CPP  = g++.exe
 CC   = gcc.exe
 WINDRES = windres.exe
 RES  = 
-OBJ  = ../../redknight/connection.o ../../redknight/elbot.o ../../redknight/initvars.o ../../redknight/log.o ../../redknight/actors.o ../../redknight/stories.o ../../redknight/local.o ../../redknight/fortune.o ../../redknight/pathfinder.o ../../redknight/config.o ../../redknight/items.o ../../redknight/timers.o ../../redknight/asc.o $(RES)
-LINKOBJ  = ../../redknight/connection.o ../../redknight/elbot.o ../../redknight/initvars.o ../../redknight/log.o ../../redknight/actors.o ../../redknight/stories.o ../../redknight/local.o ../../redknight/fortune.o ../../redknight/pathfinder.o ../../redknight/config.o ../../redknight/items.o ../../redknight/timers.o ../../redknight/asc.o $(RES)
+OBJ  = ../../redknight/connection.o ../../redknight/elbot.o ../../redknight/initvars.o ../../redknight/log.o ../../redknight/actors.o ../../redknight/stories.o ../../redknight/local.o ../../redknight/fortune.o ../../redknight/pathfinder.o ../../redknight/config.o ../../redknight/items.o ../../redknight/timers.o ../../redknight/asc.o ../../redknight/hash.o ../../redknight/hash_ext.o $(RES)
+LINKOBJ  = ../../redknight/connection.o ../../redknight/elbot.o ../../redknight/initvars.o ../../redknight/log.o ../../redknight/actors.o ../../redknight/stories.o ../../redknight/local.o ../../redknight/fortune.o ../../redknight/pathfinder.o ../../redknight/config.o ../../redknight/items.o ../../redknight/timers.o ../../redknight/asc.o ../../redknight/hash.o ../../redknight/hash_ext.o $(RES)
 LIBS =  -L"C:/Dev-Cpp/lib" -L"C:/Dev-Cpp/lib" -lSDL -lSDL_net   
 INCS =  -I"C:/Dev-Cpp/include" 
 CXXINCS =  -I"C:/Dev-Cpp/include/c++"  -I"C:/Dev-Cpp/include/c++/mingw32"  -I"C:/Dev-Cpp/include/c++/backward"  -I"C:/Dev-Cpp/include" 
 BIN  = ../redknight.exe
 CXXFLAGS = $(CXXINCS)  
-CFLAGS = $(INCS) -DWINDOWS -D_WIN32 -DNEW_TRADE -O3
+CFLAGS = $(INCS) -DWINDOWS -D_WIN32 -DNEW_TRADE -O3 
 RM = rm -f
 
 .PHONY: all all-before all-after clean
@@ -64,3 +64,10 @@ $(BIN): $(OBJ)
 
 ../../redknight/asc.o: asc.c
 	$(CC) -c asc.c -o ../../redknight/asc.o $(CFLAGS)
+     
+../../redknight/hash.o: hash.c
+	$(CC) -c hash.c -o ../../redknight/hash.o $(CFLAGS)
+     
+../../redknight/hash_ext.o: hash_ext.c
+	$(CC) -c hash_ext.c -o ../../redknight/hash_ext.o $(CFLAGS)
+     

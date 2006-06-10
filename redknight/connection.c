@@ -34,6 +34,7 @@
 unsigned char msgbuf[BUF_SIZE];
 int buf_in_use;
 unsigned char logged_in;
+extern int open_bag_id;
 
 void disable_bags();
 
@@ -200,6 +201,7 @@ int process_message (unsigned char* msg, int len) {
 		 get_bag_item(msg+3);
 		 break;
     case HERE_YOUR_GROUND_ITEMS:
+           if(open_bag_id == -1) break; // We didn't want to open this.
 		 if(get_bags_items_list(&msg[3]) == 1)
 		 {
               // We have no room - Broadcast;

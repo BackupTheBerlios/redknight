@@ -179,9 +179,9 @@ void load_equip_list(char *file)
 /**********************/
 
 // Max 5 items per each config list, except guilds, which is 10
-struct CONFIG_LIST admin = {NULL, 0, 5};
+/*struct CONFIG_LIST admin = {NULL, 0, 5};
 struct CONFIG_LIST A_player = {NULL, 0, 5};
-struct CONFIG_LIST A_guild = {NULL, 0, 10};
+struct CONFIG_LIST A_guild = {NULL, 0, 10};*/
 
 
 /******************************************************************************/
@@ -190,7 +190,7 @@ struct CONFIG_LIST A_guild = {NULL, 0, 10};
 /*         (All loaded strings are tolower'd)                                 */
 /*   return number of nodes on success, 0 on failure                          */
 /******************************************************************************/
-int load_list(struct CONFIG_LIST *list, char *file)
+/*int load_list(struct CONFIG_LIST *list, char *file)
 {
      FILE *f = NULL;
      int i = 0;
@@ -265,14 +265,14 @@ char * print_list(struct CONFIG_LIST *list, char *buffer)
      }
      return buffer;
 }
-
+*/
 /******************************************************************************/
 /* int get_string USAGE :                                                     */
 /*   if(get_string(&admin, "CrusaDingKnIGHT", 15) != -1) printf("Pwn3d!1~!"); */
 /*         (All strings are tolower'd)                                        */
 /*   return list position on success, -1 on failure                           */
 /******************************************************************************/
-int get_string(struct CONFIG_LIST *list, char * in_name, int len)
+/*int get_string(struct CONFIG_LIST *list, char * in_name, int len)
 {
      int i = 0;
      struct CONFIG_NODE *cur;
@@ -298,14 +298,14 @@ int get_string(struct CONFIG_LIST *list, char * in_name, int len)
 
      return -1;
 }
-
+*/
 /******************************************************************************/
 /* int remove_string USAGE :                                                  */
 /*   remove_string(&admin, "Crusadingknight", strlen("CrusAdingKNiGht"))      */
 /*         (All strings are tolower'd)                                        */
 /*   return list length on success, 0 on failure                              */ 
 /******************************************************************************/
-int remove_string(struct CONFIG_LIST *list, char * in_name, int len)
+/*int remove_string(struct CONFIG_LIST *list, char * in_name, int len)
 {
      int i = 0;
      struct CONFIG_NODE *cur;
@@ -337,14 +337,14 @@ int remove_string(struct CONFIG_LIST *list, char * in_name, int len)
      
      return -1;
 }
-
+*/
 /******************************************************************************/
 /* int add_string USAGE :                                                     */
 /*   add_string(&admin, "Crusadingknight", strlen("CrusAdingKNiGht"))         */
 /*         (All strings are tolower'd)                                        */
 /*   return list length on success, 0 on failure                              */     
 /******************************************************************************/
-int add_string(struct CONFIG_LIST *list, char * in_name, int len)
+/*int add_string(struct CONFIG_LIST *list, char * in_name, int len)
 {
      int i = 0;
      struct CONFIG_NODE *cur;
@@ -384,3 +384,4 @@ int add_string(struct CONFIG_LIST *list, char * in_name, int len)
      
      return ++list->l;
 }
+*/

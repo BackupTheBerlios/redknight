@@ -32,6 +32,9 @@
 #include "stories.h"
 #include "items.h"
 
+#include "hash.h"
+#include "hash_ext.h"
+
 char * ROOTDIR="/usr/opt/redknight";    // Anyone actually want this?
 char *fortune[]={"fortune", NULL};
 char *quote[]={"quote", NULL};
@@ -58,6 +61,9 @@ extern Uint8 junk_flags[36];
 /* The connection: host name and port number */
 char *hostname = "eternal-lands.solexine.fr";
 int port = 2000;
+
+/* Hash-lists. */
+hashp pallies, gallies, admins;
 
 /* Extern which must pass between all functions */
 // char chat_name[40];
@@ -170,7 +176,7 @@ void process_text_message(const char *msg, char *chat_name, int PM) {
            }
           if((!strncmp(data, "admin_help", 10))) {
                // Dump admin help info
-               if(get_string(&admin, chat_name, strlen(chat_name)) != -1) {
+               if(hashl_chk(admins, chat_name) == 1) {
                     sprintf(text, "%s%s%s%s%s%s%s%s%s%s%s%s", "Admin - Commands:\n",
                          "\"!Echo <text>\" -> Send raw text <text>.\n",
                          "\"!Send <name> <text>\" -> PM <text> to <name>.\n",
@@ -212,7 +218,7 @@ void process_text_message(const char *msg, char *chat_name, int PM) {
       // (Players won't know if they actidentally activate them)
       if(data[0] == '!') {
           data++;      // Skip '!'  
-          if(get_string(&admin, chat_name, strlen(chat_name)) != -1) {                          
+          if(hashl_chk(admins, chat_name) == 1) {
                if((!strncmp(data,"echo",4)) && data[4] != '\0' && data[5] != '\0' && data[6] != '\0') {
                    strncpy(text, data+5, (strlen(data+4))-1);
                    strcpy(text+(strlen(data+4)-2), "\0"); 
@@ -227,19 +233,20 @@ void process_text_message(const char *msg, char *chat_name, int PM) {
                }                   
                if((!strncmp(data,"die",3))) {          
                    if (debug >= DEBUG_HIGH) log_info("The boss wants me to quit!\n");
-
+                   
                    send_pm ("%s Yes sir, %s\0", chat_name, chat_name);
                    send_raw_text ("%s\0", quit_message);
-                   save_list(&A_player, "players.lst");
-                   save_list(&A_guild, "guilds.lst");
+                   hashl_save(pallies, "players.lst");
+                   hashl_save(gallies, "guilds.lst");
                    exit_connection (EXIT_ALL);
                    exit (0);
                    return;
                }
                if((!strncmp(data,"save",4))) {          
                    send_pm ("%s Yes sir, %s\0", chat_name, chat_name);
-                   save_list(&A_player, "players.lst");
-                   save_list(&A_guild, "guilds.lst");
+
+                   hashl_save(pallies, "players.lst");
+                   hashl_save(gallies, "guilds.lst");
                    return;
                }
                if((!strncmp(data,"inv", 3))) {
@@ -255,10 +262,8 @@ void process_text_message(const char *msg, char *chat_name, int PM) {
                          text[i] = data[i+5];
                    }
                    text[i] = '\0';
-                   if(add_string(&A_player, text, strlen(text)) == 0)
-                   {
-                         send_pm("%s List is already full. Maybe you should remove some people?", chat_name);
-                   }
+
+                   hashl_add(pallies, text);
                    return;
                }
                if((!strncmp(data,"pdel",4))) {
@@ -266,14 +271,12 @@ void process_text_message(const char *msg, char *chat_name, int PM) {
                          text[i] = data[i+5];
                    }
                    text[i] = '\0';
-                   if(remove_string(&A_player, text, strlen(text)) == -1)
-                   {
-                         send_pm("%s Name could not be removed. Maybe you should check your spelling?", chat_name);
-                   }
+                   
+                   hashl_del(pallies, text);
                    return;
                }
                if((!strncmp(data,"plst",4))) {
-                   send_pm("%s Players protected: %s", chat_name, print_list(&A_player, buffer));
+                   hashl_dump(pallies, chat_name);
                    return;
                }
                if((!strncmp(data,"gadd",4))) {
@@ -281,10 +284,8 @@ void process_text_message(const char *msg, char *chat_name, int PM) {
                          text[i] = data[i+5];
                    }
                    text[i] = '\0';
-                   if(add_string(&A_guild, text, strlen(text)) == 0)
-                   {
-                         send_pm("%s List is already full. Maybe you should remove some people?", chat_name);
-                   }
+
+                   hashl_add(gallies, text);
                    return;
                }
                if((!strncmp(data,"gdel",4))) {
@@ -292,14 +293,12 @@ void process_text_message(const char *msg, char *chat_name, int PM) {
                          text[i] = data[i+5];
                    }
                    text[i] = '\0';
-                   if(remove_string(&A_guild, text, strlen(text)) == -1)
-                   {
-                         send_pm("%s Name could not be removed. Maybe you should check your spelling?", chat_name);
-                   }
+                   
+                   hashl_del(gallies, text);
                    return;
                }
                if((!strncmp(data,"glst",4))) {
-                   send_pm("%s Guilds protected: %s", chat_name, print_list(&A_guild, buffer));
+                   hashl_dump(gallies, chat_name);
                    return;
                }
                if((!strncmp(data,"drop",4)) && data[4] == ' ' && data[5] != '\0') {
@@ -600,11 +599,15 @@ int init_bot()
     log_error ("Unable to read input file %s%s\n", ROOTDIR, "elbot.dat");
     exit (57);
   }
-  // Load Configuration Lists
-  load_list(&admin, "admin.lst");
-  load_list(&A_player, "players.lst");
-  load_list(&A_guild, "guilds.lst");
   
+  // Load Hash-Lists
+  admins = hash_init();
+  pallies = hash_init();
+  gallies = hash_init();
+  hashl_load(admins, "admin.lst");
+  hashl_load(pallies, "players.lst");
+  hashl_load(gallies, "guilds.lst");
+ 
   // Load the map configuration
   load_map_config("map.ini");
   // Create the timers
